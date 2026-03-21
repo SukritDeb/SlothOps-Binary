@@ -14,7 +14,7 @@
   <header>
     <div class="header-container">
       <div class="logo">
-        <span class="emoji">🦥</span>
+
         <h1>SlothOps</h1>
         <div class="pulse-indicator" id="pulse" style="display:none;"></div>
       </div>
@@ -25,9 +25,22 @@
         <button id="btn-sentry-setup" class="pr-link"
           style="background: linear-gradient(135deg, #0ea5e9, #22c55e); border: none; color: #04110a;"><i
             class="fa-solid fa-wand-magic-sparkles"></i> Set Up Sentry For Your Project</button>
-        <button id="btn-logout" class="pr-link"
-          style="background: var(--danger-color); border: none; padding: 0.4rem 0.6rem;"><i
-            class="fa-solid fa-arrow-right-from-bracket"></i></button>
+        <div class="profile-menu" id="profile-menu">
+          <button id="profile-toggle" class="profile-toggle" aria-label="Open profile menu" aria-expanded="false">
+            <i class="fa-regular fa-user"></i>
+          </button>
+          <div class="profile-dropdown" id="profile-dropdown" hidden>
+            <div class="profile-dropdown-top">
+              <div class="profile-meta">
+                <h3 id="profile-name">Hi welcome, User</h3>
+                <p><i class="fa-solid fa-building"></i> Workspace Name: <span id="profile-workspace">-</span></p>
+              </div>
+            </div>
+            <button id="btn-logout" class="profile-logout-btn">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -61,34 +74,18 @@
     </div>
 
     <div class="public-setup-cta">
-      <button id="btn-public-sentry-setup" class="btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Set Up Sentry For Your Project</button>
+      <button id="btn-public-sentry-setup" class="btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Set Up Sentry For
+        Your Project</button>
       <p>Copy the right prompt for your stack, paste into your AI agent, and bootstrap Sentry quickly.</p>
     </div>
   </div>
 
   <!-- Dashboard View -->
   <main id="dashboard-view" style="display: none;">
-    <section class="profile-summary" id="profile-summary">
-      <div class="profile-avatar" id="profile-avatar">U</div>
-      <div class="profile-meta">
-        <h3 id="profile-name">Hi welcome, User</h3>
-        <p><i class="fa-regular fa-envelope"></i> <span id="profile-email">-</span></p>
-        <p><i class="fa-solid fa-building"></i> Workspace Name: <span id="profile-workspace">-</span></p>
-      </div>
-    </section>
-
     <div class="dashboard-header">
       <h2>Recent Issues</h2>
       <p>Automated remediation pipeline events.</p>
     </div>
-
-    <section class="live-logs" id="live-logs">
-      <div class="live-logs-header">
-        <h3><i class="fa-solid fa-terminal"></i> Live Engine Logs</h3>
-        <button id="clear-logs" class="pr-link" style="padding: 0.3rem 0.55rem;">Clear</button>
-      </div>
-      <div id="log-feed" class="log-feed"></div>
-    </section>
 
     <!-- Empty State -->
     <div id="empty-state" class="empty-state">
@@ -99,6 +96,14 @@
 
     <!-- Feed Container -->
     <div id="issues-feed" class="issues-feed"></div>
+
+    <section class="live-logs" id="live-logs">
+      <div class="live-logs-header">
+        <h3><i class="fa-solid fa-terminal"></i> Live Engine Logs</h3>
+        <button id="clear-logs" class="pr-link" style="padding: 0.3rem 0.55rem;">Clear</button>
+      </div>
+      <div id="log-feed" class="log-feed"></div>
+    </section>
   </main>
 
   <!-- Settings Modal for Webhook -->
@@ -135,7 +140,8 @@
     <div class="modal sentry-setup-modal">
       <div class="sentry-modal-header">
         <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Sentry Setup Prompt Studio</h3>
-        <p>Copy a prompt, paste it into your AI coding agent in your own project, and let it wire up Sentry in minutes.</p>
+        <p>Copy a prompt, paste it into your AI coding agent in your own project, and let it wire up Sentry in minutes.
+        </p>
       </div>
 
       <div class="sentry-framework-grid">
@@ -144,8 +150,10 @@
             <span class="framework-name">Next.js</span>
             <button class="copy-prompt-btn" type="button" data-copy-target="prompt-nextjs">Copy Prompt</button>
           </div>
-          <pre class="prompt-block" id="prompt-nextjs">Use curl to download, read and follow: https://skills.sentry.dev/sentry-nextjs-sdk/SKILL.md</pre>
-          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/nextjs/" target="_blank" rel="noopener noreferrer">Open Next.js Docs</a>
+          <pre class="prompt-block"
+            id="prompt-nextjs">Use curl to download, read and follow: https://skills.sentry.dev/sentry-nextjs-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/nextjs/"
+            target="_blank" rel="noopener noreferrer">Open Next.js Docs</a>
         </article>
 
         <article class="framework-card" data-framework="nodejs">
@@ -153,8 +161,10 @@
             <span class="framework-name">Node.js</span>
             <button class="copy-prompt-btn" type="button" data-copy-target="prompt-nodejs">Copy Prompt</button>
           </div>
-          <pre class="prompt-block" id="prompt-nodejs">Use curl to download, read and follow: https://skills.sentry.dev/sentry-node-sdk/SKILL.md</pre>
-          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/node/" target="_blank" rel="noopener noreferrer">Open Node.js Docs</a>
+          <pre class="prompt-block"
+            id="prompt-nodejs">Use curl to download, read and follow: https://skills.sentry.dev/sentry-node-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/node/" target="_blank"
+            rel="noopener noreferrer">Open Node.js Docs</a>
         </article>
 
         <article class="framework-card" data-framework="react">
@@ -162,8 +172,10 @@
             <span class="framework-name">React</span>
             <button class="copy-prompt-btn" type="button" data-copy-target="prompt-react">Copy Prompt</button>
           </div>
-          <pre class="prompt-block" id="prompt-react">Use curl to download, read and follow: https://skills.sentry.dev/sentry-react-sdk/SKILL.md</pre>
-          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/react/" target="_blank" rel="noopener noreferrer">Open React Docs</a>
+          <pre class="prompt-block"
+            id="prompt-react">Use curl to download, read and follow: https://skills.sentry.dev/sentry-react-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/react/" target="_blank"
+            rel="noopener noreferrer">Open React Docs</a>
         </article>
 
         <article class="framework-card" data-framework="python">
@@ -171,8 +183,10 @@
             <span class="framework-name">Python</span>
             <button class="copy-prompt-btn" type="button" data-copy-target="prompt-python">Copy Prompt</button>
           </div>
-          <pre class="prompt-block" id="prompt-python">Use curl to download, read and follow: https://skills.sentry.dev/sentry-python-sdk/SKILL.md</pre>
-          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/python/" target="_blank" rel="noopener noreferrer">Open Python Docs</a>
+          <pre class="prompt-block"
+            id="prompt-python">Use curl to download, read and follow: https://skills.sentry.dev/sentry-python-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/python/" target="_blank"
+            rel="noopener noreferrer">Open Python Docs</a>
         </article>
 
         <article class="framework-card" data-framework="javascript">
@@ -180,14 +194,18 @@
             <span class="framework-name">JavaScript (Generic)</span>
             <button class="copy-prompt-btn" type="button" data-copy-target="prompt-javascript">Copy Prompt</button>
           </div>
-          <pre class="prompt-block" id="prompt-javascript">Use curl to download, read and follow: https://skills.sentry.dev/</pre>
-          <a class="framework-doc-link" href="https://docs.sentry.io" target="_blank" rel="noopener noreferrer">Open Sentry Docs</a>
+          <pre class="prompt-block"
+            id="prompt-javascript">Use curl to download, read and follow: https://skills.sentry.dev/</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io" target="_blank" rel="noopener noreferrer">Open
+            Sentry Docs</a>
         </article>
       </div>
 
       <div class="sentry-modal-footer">
-        <p>For full setup options and manual steps, visit <a href="https://docs.sentry.io" target="_blank" rel="noopener noreferrer">docs.sentry.io</a>.</p>
-        <button class="btn modal-close" id="close-sentry-setup" style="margin-top: 1rem; width: 100%;">Close Prompt Studio</button>
+        <p>For full setup options and manual steps, visit <a href="https://docs.sentry.io" target="_blank"
+            rel="noopener noreferrer">docs.sentry.io</a>.</p>
+        <button class="btn modal-close" id="close-sentry-setup" style="margin-top: 1rem; width: 100%;">Close Prompt
+          Studio</button>
       </div>
     </div>
   </div>
@@ -205,10 +223,11 @@
     const emptyState = document.getElementById('empty-state');
     const settingsModal = document.getElementById('settings-modal');
     const sentrySetupModal = document.getElementById('sentry-setup-modal');
-    const profileAvatar = document.getElementById('profile-avatar');
     const profileName = document.getElementById('profile-name');
-    const profileEmail = document.getElementById('profile-email');
     const profileWorkspace = document.getElementById('profile-workspace');
+    const profileMenu = document.getElementById('profile-menu');
+    const profileToggle = document.getElementById('profile-toggle');
+    const profileDropdown = document.getElementById('profile-dropdown');
     const logFeed = document.getElementById('log-feed');
     const clearLogsBtn = document.getElementById('clear-logs');
 
@@ -220,6 +239,11 @@
     document.getElementById('btn-public-sentry-setup').onclick = () => { sentrySetupModal.style.display = 'flex'; };
     document.getElementById('close-settings').onclick = () => { settingsModal.style.display = 'none'; };
     document.getElementById('close-sentry-setup').onclick = () => { sentrySetupModal.style.display = 'none'; };
+    profileToggle.onclick = () => {
+      const isOpen = !profileDropdown.hidden;
+      profileDropdown.hidden = isOpen;
+      profileToggle.setAttribute('aria-expanded', String(!isOpen));
+    };
     document.getElementById('btn-logout').onclick = () => {
       localStorage.removeItem('slothops_jwt');
       window.location.reload();
@@ -239,6 +263,13 @@
         sentrySetupModal.style.display = 'none';
       }
     };
+
+    document.addEventListener('click', (event) => {
+      if (!profileMenu.contains(event.target)) {
+        profileDropdown.hidden = true;
+        profileToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
 
     document.querySelectorAll('.copy-prompt-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
@@ -424,9 +455,7 @@
 
       const email = decoded.sub || 'user@example.com';
       const workspaceName = localStorage.getItem('slothops_workspace_name') || decoded.workspace_name || decoded.workspace_id || 'My Workspace';
-      profileAvatar.innerText = email.charAt(0).toUpperCase();
       profileName.innerText = `Hi welcome, ${email}`;
-      profileEmail.innerText = email;
       profileWorkspace.innerText = workspaceName;
 
       // Intercept GitHub App Setup Redirect natively
