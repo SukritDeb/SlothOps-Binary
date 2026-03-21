@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlothStore — Demo Environment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: '#8b5cf6',
+              bg: '#09090b',
+              surface: '#18181b',
+              surfacehover: '#27272a'
+            }
+          }
+        }
+      }
+    </script>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body class="bg-bg text-gray-200 antialiased font-sans min-h-screen p-4 lg:p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-6 lg:mb-8">
+            <h1 class="text-3xl lg:text-4xl font-bold text-white tracking-tight">Sloth<span class="text-brand">Store</span> Error Playground</h1>
+            <p class="text-gray-400 mt-2">Left side runs crash scenarios. Right side shows the live error screen output.</p>
+        </header>
+
+        <main class="split-screen">
+            <section class="controls-panel">
+                <h2 class="panel-title">Crash Buttons</h2>
+                <p class="panel-subtitle">Trigger TypeErrors and related runtime failures quickly.</p>
+
+                <div class="actions-grid">
+                    <button onclick="triggerBug('/users/999/profile')" class="action-btn">Null Profile Name</button>
+                    <button onclick="triggerBug('/users/1/premium')" class="action-btn">Premium Flag on Null</button>
+                    <button onclick="triggerBug('/orders/101')" class="action-btn">Missing Auth Header</button>
+                    <button onclick="triggerBug('/sync/batch')" class="action-btn">Async Batch Rejection</button>
+                    <button onclick="triggerBug('/config/theme?forceDark=bad_string')" class="action-btn">Poison Config Theme</button>
+                    <button onclick="triggerPost('/orders/receipt', {})" class="action-btn">Receipt ID Undefined</button>
+                    <button onclick="triggerPost('/orders/101/refund')" class="action-btn">Refund Null Traversal</button>
+                    <button onclick="triggerBug('/debug-sentry')" class="action-btn">Generic Crash Throw</button>
+                    <button onclick="triggerBug('/users/does-not-exist/profile')" class="action-btn">Missing User Profile</button>
+                    <button onclick="triggerPost('/orders/receipt', { receiptId: null })" class="action-btn">Null toUpperCase</button>
+                    <button onclick="triggerBug('/config/theme?forceDark=not_a_theme')" class="action-btn">Invalid Theme Type</button>
+                    <button onclick="triggerBug('/orders/999/subtotal')" class="action-btn">Empty Order Subtotal</button>
+                </div>
+
+                <div class="actions-footer">
+                    <button onclick="triggerBug('/health')" class="safe-btn">Health Check</button>
+                    <button onclick="clearConsole()" class="clear-btn">Clear Error Screen</button>
+                </div>
+            </section>
+
+            <section class="terminal-panel">
+                <div class="terminal-header">
+                    <span class="terminal-title">ERROR SCREEN</span>
+                    <span class="terminal-status">watching runtime logs</span>
+                </div>
+                <div class="terminal-body" id="console">
+                    <div class="text-green-500">v1.3.0 • Error monitor active. Waiting for first crash...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
