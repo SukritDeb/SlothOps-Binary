@@ -1,0 +1,93 @@
+{
+  "action": "created",
+  "data": {
+    "event": {
+      "event_id": "bug10_marketing_crash",
+      "project": 12345,
+      "timestamp": 1700003000.0,
+      "platform": "node",
+      "level": "error",
+      "title": "TypeError: Cannot read properties of null (reading 'displayName')",
+      "type": "error",
+      "message": "",
+      "exception": {
+        "values": [
+          {
+            "type": "TypeError",
+            "value": "Cannot read properties of null (reading 'displayName')",
+            "stacktrace": {
+              "frames": [
+                {
+                  "filename": "node_modules/express/lib/router/route.js",
+                  "abs_path": "/app/node_modules/express/lib/router/route.js",
+                  "function": "Route.dispatch",
+                  "lineno": 114,
+                  "colno": 3,
+                  "in_app": false,
+                  "context_line": "    layer.handle_request(req, res, next);"
+                },
+                {
+                  "filename": "src/services/userService.ts",
+                  "abs_path": "/app/src/services/userService.ts",
+                  "function": "getUserById",
+                  "lineno": 24,
+                  "colno": 10,
+                  "in_app": true,
+                  "context_line": "    return mockUsers[id] || null;"
+                },
+                {
+                  "filename": "src/services/templateService.ts",
+                  "abs_path": "/app/src/services/templateService.ts",
+                  "function": "renderTemplate",
+                  "lineno": 5,
+                  "colno": 35,
+                  "in_app": true,
+                  "context_line": "    return templateStr.replace(\"{{name}}\", user.profile!.displayName);"
+                },
+                {
+                  "filename": "src/services/emailService.ts",
+                  "abs_path": "/app/src/services/emailService.ts",
+                  "function": "sendBlast",
+                  "lineno": 10,
+                  "colno": 26,
+                  "in_app": true,
+                  "context_line": "            const body = renderTemplate(template, user);"
+                },
+                {
+                  "filename": "src/services/marketingService.ts",
+                  "abs_path": "/app/src/services/marketingService.ts",
+                  "function": "sendCampaign",
+                  "lineno": 8,
+                  "colno": 12,
+                  "in_app": true,
+                  "context_line": "    return sendBlast(targetUsers, template);"
+                },
+                {
+                  "filename": "src/routes/marketing.ts",
+                  "abs_path": "/app/src/routes/marketing.ts",
+                  "function": "post:/campaigns/:id/send",
+                  "lineno": 10,
+                  "colno": 23,
+                  "in_app": true,
+                  "context_line": "    const sentCount = sendCampaign(id);"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "tags": {
+        "environment": "production"
+      },
+      "request": {
+        "url": "https://demo.slothops.dev/marketing/campaigns/1/send",
+        "method": "POST"
+      }
+    }
+  },
+  "actor": {
+    "type": "application",
+    "id": "sentry",
+    "name": "Sentry"
+  }
+}

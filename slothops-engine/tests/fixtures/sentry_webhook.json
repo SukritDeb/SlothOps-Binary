@@ -1,0 +1,76 @@
+{
+  "action": "created",
+  "data": {
+    "event": {
+      "event_id": "abc123def456",
+      "project": 12345,
+      "timestamp": 1700000000.0,
+      "platform": "node",
+      "level": "error",
+      "title": "TypeError: Cannot read properties of null (reading 'displayName')",
+      "type": "error",
+      "message": "",
+      "exception": {
+        "values": [
+          {
+            "type": "TypeError",
+            "value": "Cannot read properties of null (reading 'displayName')",
+            "stacktrace": {
+              "frames": [
+                {
+                  "filename": "node_modules/express/lib/router/layer.js",
+                  "abs_path": "/app/node_modules/express/lib/router/layer.js",
+                  "function": "Layer.handle",
+                  "lineno": 95,
+                  "colno": 5,
+                  "in_app": false,
+                  "context_line": "    fn(req, res, next);"
+                },
+                {
+                  "filename": "node_modules/express/lib/router/route.js",
+                  "abs_path": "/app/node_modules/express/lib/router/route.js",
+                  "function": "Route.dispatch",
+                  "lineno": 114,
+                  "colno": 3,
+                  "in_app": false,
+                  "context_line": "    layer.handle_request(req, res, next);"
+                },
+                {
+                  "filename": "src/services/userService.ts",
+                  "abs_path": "/app/src/services/userService.ts",
+                  "function": "getUserById",
+                  "lineno": 15,
+                  "colno": 10,
+                  "in_app": true,
+                  "context_line": "    return users.find(u => u.id === id) ?? null;"
+                },
+                {
+                  "filename": "src/routes/users.ts",
+                  "abs_path": "/app/src/routes/users.ts",
+                  "function": "getUserProfile",
+                  "lineno": 42,
+                  "colno": 22,
+                  "in_app": true,
+                  "context_line": "    const name = user.profile.displayName;"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "tags": {
+        "environment": "production",
+        "runtime": "node v20.10.0"
+      },
+      "contexts": {
+        "os": { "name": "Linux" },
+        "runtime": { "name": "node", "version": "20.10.0" }
+      }
+    }
+  },
+  "actor": {
+    "type": "application",
+    "id": "sentry",
+    "name": "Sentry"
+  }
+}

@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SlothOps Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body class="deep-space-bg text-slate-100 font-ui min-h-screen">
+  <header class="sticky top-0 z-50 border-b border-slate-700/70 backdrop-blur-xl bg-slate-950/70">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 py-3">
+      <div id="top-header-row" class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img src="https://res-console.cloudinary.com/dvlmlpxa7/thumbnails/v1/image/upload/v1774163502/bG9nb19uNnQxeW4=/drilldown" alt="SlothOps" class="brand-logo">
+          <div>
+            <h1 class="text-lg font-semibold tracking-tight">SlothOps</h1>
+            <p class="text-xs text-slate-400">Auto-Remediation Command Center</p>
+          </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-2" id="connectivity-pills" style="display:none;">
+          <span class="pill success"><i class="fa-solid fa-satellite-dish"></i> Sentry: Active</span>
+          <span class="pill success" id="github-pill"><i class="fa-brands fa-github"></i> GitHub: Linked</span>
+          <span class="pill engine" id="engine-pill"><span class="engine-dot"></span> Engine: Live</span>
+        </div>
+
+        <div class="flex items-center gap-2" id="user-controls" style="display:none;">
+          <button id="btn-settings" class="tray-btn" title="Integration Settings">
+            <i class="fa-solid fa-plug"></i>
+            <span class="hidden sm:inline">Connect Sentry</span>
+          </button>
+          <button id="btn-sentry-setup" class="tray-btn tray-btn-ai" title="Setup Prompt Studio">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span class="hidden sm:inline">Setup Studio</span>
+          </button>
+          <div class="profile-menu" id="profile-menu">
+            <button id="profile-toggle" class="profile-toggle" aria-label="Open profile menu" aria-expanded="false">
+              <i class="fa-regular fa-user"></i>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown" hidden>
+              <div class="profile-dropdown-top">
+                <div class="profile-meta">
+                  <h3 id="profile-name">Hi welcome, User</h3>
+                  <p><i class="fa-solid fa-building"></i> Workspace Name: <span id="profile-workspace">-</span></p>
+                </div>
+              </div>
+              <button id="btn-logout" class="profile-logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-2 md:hidden" id="connectivity-pills-mobile" style="display:none;">
+        <div class="flex flex-wrap gap-2">
+          <span class="pill success"><i class="fa-solid fa-satellite-dish"></i> Sentry: Active</span>
+          <span class="pill success" id="github-pill-mobile"><i class="fa-brands fa-github"></i> GitHub: Linked</span>
+          <span class="pill engine"><span class="engine-dot"></span> Engine: Live</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="auth-view" class="px-4 py-10">
+    <div class="auth-brand-wrap">
+      <img src="https://res-console.cloudinary.com/dvlmlpxa7/thumbnails/v1/image/upload/v1774163502/bG9nb19uNnQxeW4=/drilldown" alt="SlothOps logo" class="auth-brand-logo">
+    </div>
+    <div class="auth-container" id="login-box">
+      <h2>Welcome Back</h2>
+      <p>Log in to view your workspace</p>
+      <form id="login-form">
+        <div class="form-group"><label>Email</label><input type="email" id="login-email" required></div>
+        <div class="form-group"><label>Password</label><input type="password" id="login-pass" required></div>
+        <button type="submit" class="btn">Sign In</button>
+        <div class="auth-error" id="login-error"></div>
+      </form>
+      <div class="auth-toggle">Need an organization? <span id="to-signup">Create Workspace</span></div>
+    </div>
+
+    <div class="auth-container" id="signup-box" style="display:none;">
+      <h2>Create Workspace</h2>
+      <p>Deploy your own SlothOps automation</p>
+      <form id="signup-form">
+        <div class="form-group"><label>Workspace Name</label><input type="text" id="signup-workspace" required
+            placeholder="Acme Corp"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="signup-email" required></div>
+        <div class="form-group"><label>Password</label><input type="password" id="signup-pass" required></div>
+        <button type="submit" class="btn">Start Automating</button>
+        <div class="auth-error" id="signup-error"></div>
+      </form>
+      <div class="auth-toggle">Already have an account? <span id="to-login">Sign In</span></div>
+    </div>
+
+    <div class="public-setup-cta">
+      <button id="btn-public-sentry-setup" class="btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Set Up Sentry For
+        Your Project</button>
+      <p>Copy the right prompt for your stack, paste into your AI agent, and bootstrap Sentry quickly.</p>
+    </div>
+  </div>
+
+  <main id="dashboard-view" class="max-w-[1440px] mx-auto px-4 lg:px-8 py-6" style="display:none;">
+    <div class="mb-4 flex items-end justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-semibold tracking-tight">Active Issues</h2>
+        <p class="text-sm text-slate-400">Dual-pane incident response view with live issue states and runtime logs.</p>
+      </div>
+    </div>
+
+    <div id="dashboard-tabs" class="mb-6 flex gap-3 border-b border-slate-700/70 pb-2">
+      <button id="tab-issues"
+        class="bg-indigo-600 text-white border-none px-4 py-2 rounded font-semibold cursor-pointer">Issues
+        Engine</button>
+      <button id="tab-qa"
+        class="bg-transparent text-slate-400 border border-slate-700 px-4 py-2 rounded cursor-pointer hover:bg-slate-800">QA
+        Pipeline</button>
+    </div>
+
+    <div class="dashboard-grid">
+      <section class="panel issues-panel">
+        <div id="empty-state" class="empty-state">
+          <i class="fa-solid fa-check-circle fa-2x"></i>
+          <p>No issues detected.</p>
+          <span>Connect Sentry from Integration Settings to stream production exceptions.</span>
+        </div>
+        <div id="issues-feed" class="issues-feed"></div>
+
+        <!-- Rollbacks Feed Section -->
+        <div id="rollbacks-section" style="display: none;">
+          <div class="dashboard-header" style="margin-top: 3rem; margin-bottom: 1rem;">
+            <h2 class="text-lg font-semibold tracking-tight"><i class="fa-solid fa-clock-rotate-left"></i> Production
+              Rollbacks</h2>
+            <p class="text-sm text-slate-400">Automated safety-net events protecting your main branch.</p>
+          </div>
+          <div id="rollbacks-feed" class="issues-feed"></div>
+        </div>
+
+        <!-- QA Feed Container -->
+        <div id="qa-feed" class="issues-feed" style="display:none; flex-direction: column;">
+          <div id="qa-config-hint" class="bg-indigo-900/20 border border-indigo-500/30 rounded-xl p-4 mb-2">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fa-solid fa-lightbulb text-amber-400"></i>
+              <strong class="text-sm">Optional: Add a <code>.slothops.yml</code> to your repo root</strong>
+            </div>
+            <pre class="bg-black/35 p-3 rounded-lg text-xs text-slate-200 overflow-x-auto mb-2 leading-relaxed">stack: node
+start: npm start
+test: npm test
+lint: npx eslint .
+port: 3000</pre>
+            <p class="text-xs text-slate-400 m-0">This is <strong>not mandatory</strong> — SlothOps auto-detects your
+              stack. But providing a config gives you full control over which tools run.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel live-logs" id="live-logs">
+        <div class="live-logs-header scanline">
+          <h3><i class="fa-solid fa-terminal"></i> Engine Terminal</h3>
+          <button id="clear-logs" class="tray-btn">Clear</button>
+        </div>
+        <div id="log-feed" class="log-feed"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal">
+      <h3><i class="fa-solid fa-plug"></i> Sentry Integration</h3>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">To pipe errors into your dedicated tenant environment,
+        copy this custom Webhook URL and paste it into your Sentry Project's <strong>Webhook Integration</strong>
+        plugin.</p>
+      <div class="code-block" id="webhook-url"></div>
+      <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 1rem;">
+        <strong>Workspace ID: </strong> <span id="workspace-id-display" style="font-family: var(--font-mono)"></span>
+      </p>
+
+      <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+        <h3><i class="fa-brands fa-github"></i> GitHub App Access</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">Authorize SlothOps to pull syntax context and create
+          Pull Requests.</p>
+        <div style="margin-top: 1rem;">
+          <a href="https://github.com/apps/slothops-bot/installations/select_target" target="_self" class="btn"
+            style="text-decoration: none; display: inline-block; background: #2ea043; color: white;"><i
+              class="fa-brands fa-github"></i> Install on GitHub</a>
+        </div>
+        <p style="color: #22c55e; font-size: 0.85rem; margin-top: 0.5rem; display: none;" id="github-success-msg"><i
+            class="fa-solid fa-check"></i> Linked GitHub Installation!</p>
+      </div>
+
+      <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+        <h3><i class="fa-solid fa-code"></i> Developer Code Rules</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Configure code style rules
+          for AI-generated fixes (<code>developer.json</code>).</p>
+        <textarea id="dev-config-json" rows="6"
+          style="width: 100%; width: -moz-available; width: -webkit-fill-available; background: var(--panel-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; font-family: var(--mono); font-size: 0.85rem;"
+          placeholder='{&#10;  "frontend": { "styling": "Tailwind CSS only" }&#10;}'></textarea>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+          <span id="dev-config-status" style="font-size: 0.85rem; color: #22c55e;"></span>
+          <button id="btn-save-dev-config" class="btn" style="width: auto; padding: 0.4rem 1rem;">Save Config</button>
+        </div>
+      </div>
+
+      <button class="btn modal-close" id="close-settings" style="margin-top: 2rem; width: 100%;">Close Settings</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="sentry-setup-modal">
+    <div class="modal sentry-setup-modal">
+      <div class="sentry-modal-header">
+        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Sentry Setup Prompt Studio</h3>
+        <p>Copy a prompt, paste it into your AI coding agent in your own project, and let it wire up Sentry in minutes.
+        </p>
+      </div>
+
+      <div class="sentry-framework-grid">
+        <article class="framework-card" data-framework="nextjs">
+          <div class="framework-top">
+            <span class="framework-name">Next.js</span>
+            <button class="copy-prompt-btn" type="button" data-copy-target="prompt-nextjs">Copy Prompt</button>
+          </div>
+          <pre class="prompt-block"
+            id="prompt-nextjs">Use curl to download, read and follow: https://skills.sentry.dev/sentry-nextjs-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/nextjs/"
+            target="_blank" rel="noopener noreferrer">Open Next.js Docs</a>
+        </article>
+
+        <article class="framework-card" data-framework="nodejs">
+          <div class="framework-top">
+            <span class="framework-name">Node.js</span>
+            <button class="copy-prompt-btn" type="button" data-copy-target="prompt-nodejs">Copy Prompt</button>
+          </div>
+          <pre class="prompt-block"
+            id="prompt-nodejs">Use curl to download, read and follow: https://skills.sentry.dev/sentry-node-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/node/" target="_blank"
+            rel="noopener noreferrer">Open Node.js Docs</a>
+        </article>
+
+        <article class="framework-card" data-framework="react">
+          <div class="framework-top">
+            <span class="framework-name">React</span>
+            <button class="copy-prompt-btn" type="button" data-copy-target="prompt-react">Copy Prompt</button>
+          </div>
+          <pre class="prompt-block"
+            id="prompt-react">Use curl to download, read and follow: https://skills.sentry.dev/sentry-react-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/javascript/guides/react/" target="_blank"
+            rel="noopener noreferrer">Open React Docs</a>
+        </article>
+
+        <article class="framework-card" data-framework="python">
+          <div class="framework-top">
+            <span class="framework-name">Python</span>
+            <button class="copy-prompt-btn" type="button" data-copy-target="prompt-python">Copy Prompt</button>
+          </div>
+          <pre class="prompt-block"
+            id="prompt-python">Use curl to download, read and follow: https://skills.sentry.dev/sentry-python-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/python/" target="_blank"
+            rel="noopener noreferrer">Open Python Docs</a>
+        </article>
+
+        <article class="framework-card" data-framework="react-native">
+          <div class="framework-top">
+            <span class="framework-name">React Native</span>
+            <button class="copy-prompt-btn" type="button" data-copy-target="prompt-react-native">Copy Prompt</button>
+          </div>
+          <pre class="prompt-block"
+            id="prompt-react-native">Use curl to download, read and follow: https://skills.sentry.dev/sentry-react-native-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/react-native/" target="_blank"
+            rel="noopener noreferrer">Open React Native Docs</a>
+        </article>
+
+        <article class="framework-card" data-framework="android">
+          <div class="framework-top">
+            <span class="framework-name">Android</span>
+            <button class="copy-prompt-btn" type="button" data-copy-target="prompt-android">Copy Prompt</button>
+          </div>
+          <pre class="prompt-block"
+            id="prompt-android">Use curl to download, read and follow: https://skills.sentry.dev/sentry-android-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/android/" target="_blank"
+            rel="noopener noreferrer">Open Android Docs</a>
+        </article>
+
+        <article class="framework-card" data-framework="dart">
+          <div class="framework-top">
+            <span class="framework-name">Dart (Flutter)</span>
+            <button class="copy-prompt-btn" type="button" data-copy-target="prompt-dart">Copy Prompt</button>
+          </div>
+          <pre class="prompt-block"
+            id="prompt-dart">Use curl to download, read and follow: https://skills.sentry.dev/sentry-flutter-sdk/SKILL.md</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io/platforms/dart/guides/flutter/" target="_blank"
+            rel="noopener noreferrer">Open Dart/Flutter Docs</a>
+        </article>
+
+        <article class="framework-card" data-framework="javascript">
+          <div class="framework-top">
+            <span class="framework-name">JavaScript (Generic)</span>
+            <button class="copy-prompt-btn" type="button" data-copy-target="prompt-javascript">Copy Prompt</button>
+          </div>
+          <pre class="prompt-block"
+            id="prompt-javascript">Use curl to download, read and follow: https://skills.sentry.dev/</pre>
+          <a class="framework-doc-link" href="https://docs.sentry.io" target="_blank" rel="noopener noreferrer">Open
+            Sentry Docs</a>
+        </article>
+      </div>
+
+      <div class="sentry-modal-footer">
+        <p>For full setup options and manual steps, visit <a href="https://docs.sentry.io" target="_blank"
+            rel="noopener noreferrer">docs.sentry.io</a>.</p>
+        <button class="btn modal-close" id="close-sentry-setup" style="margin-top: 1rem; width: 100%;">Close Prompt
+          Studio</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="qa-detail-modal" style="display:none;">
+    <div class="modal" style="max-width: 720px; max-height: 85vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 id="qa-detail-title"><i class="fa-solid fa-clipboard-check"></i> QA Report Detail</h3>
+        <div id="qa-detail-status-badge"
+          style="font-weight: 600; font-size: 0.85rem; padding: 0.25rem 0.75rem; border-radius: 999px;"></div>
+      </div>
+      <p style="color: var(--text-secondary, #94a3b8); font-size: 0.85rem; margin-bottom: 1.25rem;" id="qa-detail-meta">
+      </p>
+
+      <div id="qa-detail-agents" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+
+      <div id="qa-detail-ai-fix"
+        style="display: none; margin-top: 1.25rem; padding: 1rem; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25); border-radius: 10px;">
+        <h4 style="color: #a78bfa; margin-bottom: 0.5rem;"><i class="fa-solid fa-robot"></i> AI Fix Recommendation</h4>
+        <div id="qa-detail-ai-fix-content"
+          style="font-size: 0.85rem; color: var(--text-secondary, #94a3b8); white-space: pre-wrap; line-height: 1.5;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn" id="qa-detail-bypass-btn"
+          style="background: var(--panel-bg, #1e293b); border: 1px solid var(--border-color, #334155); color: var(--text-secondary, #94a3b8); flex: 1; display: none;"><i
+            class="fa-solid fa-forward"></i> Bypass QA</button>
+        <a id="qa-detail-pr-link" href="#" target="_blank" class="btn"
+          style="background: #2ea043; color: white; flex: 1; text-align: center; text-decoration: none; display: none;"><i
+            class="fa-brands fa-github"></i> View PR</a>
+        <button class="btn modal-close" id="close-qa-detail" style="flex: 1;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const authView = document.getElementById('auth-view');
+    const dashboardView = document.getElementById('dashboard-view');
+    const loginBox = document.getElementById('login-box');
+    const signupBox = document.getElementById('signup-box');
+    const userControls = document.getElementById('user-controls');
+    const feed = document.getElementById('issues-feed');
+    const emptyState = document.getElementById('empty-state');
+    const settingsModal = document.getElementById('settings-modal');
+    const sentrySetupModal = document.getElementById('sentry-setup-modal');
+    const profileName = document.getElementById('profile-name');
+    const profileWorkspace = document.getElementById('profile-workspace');
+    const profileMenu = document.getElementById('profile-menu');
+    const profileToggle = document.getElementById('profile-toggle');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    const logFeed = document.getElementById('log-feed');
+    const clearLogsBtn = document.getElementById('clear-logs');
+    const logsPanel = document.getElementById('live-logs');
+    const connectivityPills = document.getElementById('connectivity-pills');
+    const connectivityPillsMobile = document.getElementById('connectivity-pills-mobile');
+    const githubPill = document.getElementById('github-pill');
+    const githubPillMobile = document.getElementById('github-pill-mobile');
+    const tabIssues = document.getElementById('tab-issues');
+    const tabQA = document.getElementById('tab-qa');
+    const rollbacksFeed = document.getElementById('rollbacks-feed');
+    const rollbacksSection = document.getElementById('rollbacks-section');
+    const qaFeed = document.getElementById('qa-feed');
+    const qaDetailModal = document.getElementById('qa-detail-modal');
+
+    function setEmptyState(mode) {
+      if (!emptyState) return;
+      const icon = emptyState.querySelector('i');
+      const title = emptyState.querySelector('p');
+      const subtitle = emptyState.querySelector('span');
+
+      if (mode === 'qa') {
+        if (icon) icon.className = 'fa-solid fa-clipboard-check fa-2x';
+        if (title) title.innerText = 'No QA reports yet.';
+        if (subtitle) subtitle.innerText = 'Open a PR on your linked repo to trigger the QA pipeline.';
+        return;
+      }
+
+      if (icon) icon.className = 'fa-solid fa-check-circle fa-2x';
+      if (title) title.innerText = 'No issues detected.';
+      if (subtitle) subtitle.innerText = 'Connect Sentry from Integration Settings to stream production exceptions.';
+    }
+
+    if (tabIssues && tabQA) {
+      tabIssues.onclick = () => {
+        tabIssues.className = 'bg-indigo-600 text-white border-none px-4 py-2 rounded font-semibold cursor-pointer';
+        tabQA.className = 'bg-transparent text-slate-400 border border-slate-700 px-4 py-2 rounded cursor-pointer hover:bg-slate-800';
+
+        setEmptyState('issues');
+        feed.style.display = '';
+        if (rollbacksSection) rollbacksSection.style.display = '';
+        qaFeed.style.display = 'none';
+        emptyState.style.display = feed.children.length > 0 ? 'none' : 'flex';
+      };
+
+      tabQA.onclick = () => {
+        tabQA.className = 'bg-indigo-600 text-white border-none px-4 py-2 rounded font-semibold cursor-pointer';
+        tabIssues.className = 'bg-transparent text-slate-400 border border-slate-700 px-4 py-2 rounded cursor-pointer hover:bg-slate-800';
+
+        setEmptyState('qa');
+        feed.style.display = 'none';
+        if (rollbacksSection) rollbacksSection.style.display = 'none';
+        qaFeed.style.display = 'flex';
+        emptyState.style.display = qaFeed.children.length > 1 ? 'none' : 'flex';
+
+        loadQAReports();
+      };
+      // init view
+      if (rollbacksSection) rollbacksSection.style.display = '';
+    }
+
+    document.getElementById('to-signup').onclick = () => { loginBox.style.display = 'none'; signupBox.style.display = 'block'; };
+    document.getElementById('to-login').onclick = () => { signupBox.style.display = 'none'; loginBox.style.display = 'block'; };
+    document.getElementById('btn-settings').onclick = () => { settingsModal.style.display = 'flex'; };
+    document.getElementById('btn-sentry-setup').onclick = () => { sentrySetupModal.style.display = 'flex'; };
+    document.getElementById('btn-public-sentry-setup').onclick = () => { sentrySetupModal.style.display = 'flex'; };
+    document.getElementById('close-settings').onclick = () => { settingsModal.style.display = 'none'; };
+    document.getElementById('close-sentry-setup').onclick = () => { sentrySetupModal.style.display = 'none'; };
+
+    profileToggle.onclick = () => {
+      const isOpen = !profileDropdown.hidden;
+      profileDropdown.hidden = isOpen;
+      profileToggle.setAttribute('aria-expanded', String(!isOpen));
+    };
+
+    document.getElementById('btn-logout').onclick = () => {
+      localStorage.removeItem('slothops_jwt');
+      window.location.reload();
+    };
+
+    clearLogsBtn.onclick = () => {
+      logFeed.innerHTML = '';
+    };
+
+    settingsModal.onclick = (event) => {
+      if (event.target === settingsModal) settingsModal.style.display = 'none';
+    };
+
+    sentrySetupModal.onclick = (event) => {
+      if (event.target === sentrySetupModal) sentrySetupModal.style.display = 'none';
+    };
+
+    document.addEventListener('click', (event) => {
+      if (!profileMenu.contains(event.target)) {
+        profileDropdown.hidden = true;
+        profileToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.querySelectorAll('.copy-prompt-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const targetId = btn.dataset.copyTarget;
+        const promptText = document.getElementById(targetId)?.innerText || '';
+        if (!promptText) return;
+
+        const original = btn.innerText;
+        try {
+          await navigator.clipboard.writeText(promptText);
+          btn.innerText = 'Copied';
+        } catch (e) {
+          btn.innerText = 'Copy Failed';
+        }
+        setTimeout(() => { btn.innerText = original; }, 1300);
+      });
+    });
+
+    const STATUS_MAP = {
+      'received': { label: 'Ingested', icon: 'fa-inbox', color: 'blue', step: 1 },
+      'triaging': { label: 'Redacted', icon: 'fa-user-shield', color: 'amber', step: 2 },
+      'classified': { label: 'Classified', icon: 'fa-tags', color: 'yellow', step: 3 },
+      'fixing': { label: 'LLM Fixing', icon: 'fa-robot', color: 'purple', pulse: true, step: 4 },
+      'pr_created': { label: 'PR Created', icon: 'fa-code-pull-request', color: 'green', step: 5 },
+      'pr_merged': { label: 'Merged', icon: 'fa-code-merge', color: 'green', step: 5 },
+      'ignored': { label: 'Ignored', icon: 'fa-ban', color: 'gray', step: 2 },
+      'fixing_failed': { label: 'Fix Failed', icon: 'fa-triangle-exclamation', color: 'red', step: 4 },
+      'pr_creation_failed': { label: 'PR Failed', icon: 'fa-triangle-exclamation', color: 'red', step: 5 },
+      'fix_ineffective': { label: 'Re-triggered', icon: 'fa-rotate-left', color: 'red', step: 4 },
+      'recommendation_only': { label: 'Recommendation', icon: 'fa-circle-info', color: 'yellow', step: 4 },
+    };
+
+    const STEP_LABELS = ['Ingested', 'Redacted', 'Classified', 'LLM Fixing', 'PR Created'];
+
+    function renderResolutionsHtml(resolutions) {
+      if (!resolutions || resolutions.length === 0) return '';
+      let html = '<div style="margin-top:0.75rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.75rem;">';
+      html += '<p style="font-size:0.8rem; font-weight:bold; color:var(--text-secondary, #94a3b8); margin-bottom: 0.5rem;"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Resolutions</p>';
+      resolutions.forEach(res => {
+        const st = res.status || 'pending';
+        let c = '#94a3b8'; let i = 'fa-circle-notch fa-spin';
+        if (st === 'build_passed') { c = '#10b981'; i = 'fa-check'; }
+        else if (st === 'build_failed' || st === 'abandoned') { c = '#ef4444'; i = 'fa-xmark'; }
+        else if (st === 'pr_opened' || st === 'fix_pushed') { c = '#3b82f6'; i = 'fa-code-pull-request'; }
+
+        const pr = res.resolution_pr_url ? `<a href="${res.resolution_pr_url}" target="_blank" style="color:#3b82f6;text-decoration:none;margin-left:0.5rem;"><i class="fa-brands fa-github"></i> PR #${res.resolution_pr_number}</a>` : '';
+        html += `<div style="font-size:0.8rem; margin-bottom:0.25rem;">
+                <span class="badge" style="background:${c}22;color:${c};padding:0.15rem 0.4rem;font-size:0.75rem;"><i class="fa-solid ${i}"></i> Attempt ${res.attempt_number}</span>
+                <span style="color:var(--text-primary, #f8fafc); margin-left:0.5rem;">${st.replace('_', ' ').toUpperCase()}</span>
+                ${pr}
+            </div>`;
+      });
+      html += '</div>';
+      return html;
+    }
+
+    function createRollbackCard(rb) {
+      const card = document.createElement('div');
+      card.className = 'issue-card slide-in';
+      card.id = `rollback-${rb.id}`;
+
+      const st = (rb.status || 'pending').toLowerCase();
+      const color = st === 'completed' ? 'green' : (st === 'failed' ? 'red' : 'amber');
+      const icon = st === 'completed' ? 'fa-check' : (st === 'failed' ? 'fa-xmark' : 'fa-circle-notch fa-spin');
+
+      const prLink = rb.pr_url ? `<a href="${rb.pr_url}" target="_blank" class="pr-link"><i class="fa-brands fa-github"></i> PR #${rb.pr_number}</a>` : '';
+
+      card.innerHTML = `
+        <div class="card-header" style="border-left: 4px solid var(--${color === 'green' ? 'success' : (color === 'red' ? 'danger' : 'warning')}-color, ${color});">
+          <div class="card-title">
+            <span class="error-type" style="color:#ef4444;"><i class="fa-solid fa-backward-step"></i> Auto-Rollback</span>
+            <span style="font-size:0.8rem;color:var(--text-secondary, #94a3b8);margin-left:0.5rem;">${rb.repo_name}</span>
+          </div>
+          <div class="card-status status-${color}">
+            <i class="fa-solid ${icon}"></i><span>${st.toUpperCase()}</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="error-msg" style="margin-bottom:0.5rem;"><strong>Reverted Bad Commit:</strong> <code style="padding:0.15rem 0.35rem;background:rgba(239,68,68,0.15);color:#ef4444;border-radius:4px;">${(rb.failed_commit_sha || '').substring(0, 8)}</code></p>
+          <p class="error-msg" style="font-size:0.85rem;color:var(--text-secondary, #94a3b8);">Reason: ${rb.failure_reason}</p>
+          ${rb.backup_branch ? `<p class="location" style="margin-top:0.75rem;"><i class="fa-solid fa-code-branch"></i> Backup Branch: <code style="color:var(--brand-color, #6366f1);">${rb.backup_branch}</code></p>` : ''}
+          <div class="resolutions-container">${renderResolutionsHtml(rb.resolutions)}</div>
+        </div>
+        <div class="card-footer" style="padding-top: 0.75rem;">
+          <div class="badges"></div>
+          <div class="actions" style="gap: 0.75rem;">
+            ${prLink}
+            <span class="time">${formatTime(rb.created_at)}</span>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function updateRollbackCard(card, rb) {
+      const st = (rb.status || 'pending').toLowerCase();
+      const color = st === 'completed' ? 'green' : (st === 'failed' ? 'red' : 'amber');
+      const icon = st === 'completed' ? 'fa-check' : (st === 'failed' ? 'fa-xmark' : 'fa-circle-notch fa-spin');
+
+      const statusContainer = card.querySelector('.card-status');
+      statusContainer.className = `card-status status-${color}`;
+      statusContainer.innerHTML = `<i class="fa-solid ${icon}"></i><span>${st.toUpperCase()}</span>`;
+
+      const resContainer = card.querySelector('.resolutions-container');
+      if (resContainer) {
+        resContainer.innerHTML = renderResolutionsHtml(rb.resolutions);
+      }
+    }
+
+    function qaStatusColor(st) {
+      if (st === 'passed') return { color: 'green', icon: 'fa-check-circle', bg: 'rgba(16,185,129,0.12)' };
+      if (st === 'failed') return { color: 'red', icon: 'fa-times-circle', bg: 'rgba(239,68,68,0.12)' };
+      if (st === 'warning') return { color: 'yellow', icon: 'fa-exclamation-triangle', bg: 'rgba(245,158,11,0.12)' };
+      if (st === 'bypassed') return { color: 'blue', icon: 'fa-forward-step', bg: 'rgba(59,130,246,0.12)' };
+      return { color: 'gray', icon: 'fa-circle-notch', bg: 'rgba(148,163,184,0.12)' };
+    }
+
+    function createQACard(report) {
+      const card = document.createElement('div');
+      card.className = 'issue-card slide-in';
+      card.id = `qa-${report.id}`;
+      card.style.cursor = 'pointer';
+      card.onclick = () => openQADetail(report.id);
+
+      const s = qaStatusColor(report.overall_status);
+
+      const agents = [
+        { key: 'static_analysis', label: 'Static' },
+        { key: 'functionality', label: 'Tests' },
+        { key: 'vapt', label: 'VAPT' },
+        { key: 'stress_test', label: 'Stress' },
+        { key: 'regression', label: 'Regression' },
+        { key: 'performance', label: 'Perf' },
+      ];
+      let agentBadges = '';
+      agents.forEach(a => {
+        const d = report[a.key];
+        if (!d) return;
+        const st = d.status || 'unknown';
+        const c = st === 'passed' ? '#10b981' : st === 'warning' ? '#f59e0b' : st === 'failed' ? '#ef4444' : '#94a3b8';
+        agentBadges += `<span style="display:inline-flex;align-items:center;gap:0.25rem;font-size:0.72rem;padding:0.15rem 0.5rem;border-radius:999px;background:${c}22;color:${c};border:1px solid ${c}44;">${a.label}</span>`;
+      });
+
+      const prLink = report.pr_url ? `<a href="${report.pr_url}" target="_blank" class="pr-link" onclick="event.stopPropagation()"><i class="fa-brands fa-github"></i> PR</a>` : '';
+
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-title">
+            <span class="error-type">PR #${report.pr_number}</span>
+            <span style="font-size:0.8rem;color:var(--text-secondary, #94a3b8);margin-left:0.5rem;">${report.repo_name}</span>
+          </div>
+          <div class="card-status status-${s.color}">
+            <i class="fa-solid ${s.icon}"></i><span>${(report.overall_status || '').toUpperCase()}</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="error-msg" style="font-family:var(--font-mono, monospace);font-size:0.82rem;">@ ${(report.commit_sha || '').substring(0, 8)}</p>
+          <div style="margin-top:0.65rem;display:flex;flex-wrap:wrap;gap:0.35rem;">${agentBadges}</div>
+        </div>
+        <div class="card-footer" style="padding-top: 0.75rem;">
+          <div class="badges"></div>
+          <div class="actions" style="gap: 0.75rem;">
+            ${prLink}
+            <span class="time">${formatTime(report.created_at)}</span>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    async function bypassQA(reportId) {
+      const reason = prompt("Enter reason for bypassing QA failures:");
+      if (!reason) return;
+
+      const token = localStorage.getItem('slothops_jwt');
+      try {
+        const res = await fetch(`/api/qa-bypass/${reportId}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        if (res.ok) {
+          loadQAReports();
+        } else {
+          alert("Failed to bypass QA.");
+        }
+      } catch (e) {
+        console.error("Bypass failed", e);
+      }
+    }
+
+    async function openQADetail(reportId) {
+      const token = localStorage.getItem('slothops_jwt');
+      try {
+        const res = await fetch(`/api/qa-reports/${reportId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) { alert('Failed to load report'); return; }
+        const r = await res.json();
+        renderQADetail(r);
+        if (qaDetailModal) qaDetailModal.style.display = 'flex';
+      } catch (e) { console.error(e); }
+    }
+
+    function renderQADetail(r) {
+      document.getElementById('qa-detail-title').innerHTML = `<i class="fa-solid fa-clipboard-check"></i> QA Report — PR #${r.pr_number}`;
+      const s = qaStatusColor(r.overall_status);
+      const badge = document.getElementById('qa-detail-status-badge');
+      badge.textContent = (r.overall_status || '').toUpperCase();
+      badge.style.background = s.bg;
+      badge.style.color = { green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#3b82f6', gray: '#94a3b8' }[s.color];
+
+      document.getElementById('qa-detail-meta').innerHTML = `
+        <strong>${r.repo_name}</strong> &nbsp;·&nbsp; Commit <code>${(r.commit_sha || '').substring(0, 8)}</code>
+        &nbsp;·&nbsp; ${new Date(r.created_at).toLocaleString()}
+      `;
+
+      const agents = [
+        { key: 'static_analysis', label: 'Static Analysis', icon: 'fa-magnifying-glass-chart' },
+        { key: 'functionality', label: 'Functionality Testing', icon: 'fa-vial' },
+        { key: 'vapt', label: 'VAPT Scan', icon: 'fa-shield-halved' },
+        { key: 'stress_test', label: 'Stress Testing', icon: 'fa-bolt' },
+        { key: 'regression', label: 'Regression Testing', icon: 'fa-rotate-left' },
+        { key: 'performance', label: 'Performance Baseline', icon: 'fa-gauge-high' },
+      ];
+
+      const container = document.getElementById('qa-detail-agents');
+      container.innerHTML = '';
+      agents.forEach(a => {
+        const d = r[a.key];
+        if (!d) return;
+        const st = d.status || 'unknown';
+        const sc = qaStatusColor(st);
+        const emoji = st === 'passed' ? '✅' : st === 'warning' ? '⚠️' : st === 'failed' ? '❌' : '⏳';
+
+        let logsHtml = '';
+        if (a.key === 'static_analysis' && d.issues && d.issues.length > 0) {
+          let issuesContent = '';
+          d.issues.forEach(issue => {
+            issuesContent += `<div style="margin-bottom:0.5rem;"><strong>${issue.tool || 'Tool'}:</strong><pre style="background:rgba(0,0,0,0.3);padding:0.5rem;border-radius:6px;font-size:0.78rem;overflow-x:auto;margin-top:0.25rem;color:#e2e8f0;white-space:pre-wrap;">${escapeHtml(issue.output || 'No output')}</pre></div>`;
+          });
+          logsHtml = `<details style="margin-top:0.5rem;"><summary style="cursor:pointer;font-size:0.8rem;color:var(--brand-color, #6366f1);">View detailed logs</summary><div style="margin-top:0.5rem;">${issuesContent}</div></details>`;
+        }
+        if (d.logs && typeof d.logs === 'string') {
+          logsHtml = `<details style="margin-top:0.5rem;"><summary style="cursor:pointer;font-size:0.8rem;color:var(--brand-color, #6366f1);">View detailed logs</summary><pre style="background:rgba(0,0,0,0.3);padding:0.5rem;border-radius:6px;font-size:0.78rem;overflow-x:auto;margin-top:0.25rem;color:#e2e8f0;white-space:pre-wrap;max-height:200px;overflow-y:auto;">${escapeHtml(d.logs)}</pre></details>`;
+        }
+        if (d.failures) {
+          logsHtml += `<details style="margin-top:0.5rem;"><summary style="cursor:pointer;font-size:0.8rem;color:var(--brand-color, #6366f1);">View failures</summary><pre style="background:rgba(0,0,0,0.3);padding:0.5rem;border-radius:6px;font-size:0.78rem;overflow-x:auto;margin-top:0.25rem;color:#e2e8f0;white-space:pre-wrap;max-height:200px;overflow-y:auto;">${escapeHtml(typeof d.failures === 'string' ? d.failures : JSON.stringify(d.failures, null, 2))}</pre></details>`;
+        }
+
+        container.innerHTML += `
+          <div style="padding:0.75rem 1rem;background:${sc.bg};border:1px solid ${badge.style.color}22;border-radius:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-weight:600;font-size:0.88rem;"><i class="fa-solid ${a.icon}" style="margin-right:0.35rem;"></i>${a.label}</span>
+              <span style="font-size:0.8rem;">${emoji} ${st.toUpperCase()}</span>
+            </div>
+            <p style="font-size:0.82rem;color:var(--text-secondary, #94a3b8);margin-top:0.35rem;">${d.summary || 'No summary.'}</p>
+            ${logsHtml}
+          </div>
+        `;
+      });
+
+      const aiFix = document.getElementById('qa-detail-ai-fix');
+      const aiContent = document.getElementById('qa-detail-ai-fix-content');
+      const summaryText = r.summary || '';
+      const aiIdx = summaryText.indexOf('### 🤖 AI Auto-Fix Recommendation');
+      if (aiIdx !== -1) {
+        aiFix.style.display = 'block';
+        aiContent.textContent = summaryText.substring(aiIdx + '### 🤖 AI Auto-Fix Recommendation'.length).trim();
+      } else {
+        aiFix.style.display = 'none';
+      }
+
+      const bypassBtn = document.getElementById('qa-detail-bypass-btn');
+      if (r.overall_status === 'failed' || r.overall_status === 'warning') {
+        bypassBtn.style.display = 'block';
+        bypassBtn.onclick = async () => {
+          const reason = prompt('Enter reason for bypassing QA:');
+          if (!reason) return;
+          await bypassQA(r.id);
+          if (qaDetailModal) qaDetailModal.style.display = 'none';
+        };
+      } else {
+        bypassBtn.style.display = 'none';
+      }
+
+      const prLink = document.getElementById('qa-detail-pr-link');
+      if (r.pr_url) {
+        prLink.href = r.pr_url;
+        prLink.style.display = 'block';
+      } else {
+        prLink.style.display = 'none';
+      }
+    }
+
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    async function loadQAReports() {
+      const token = localStorage.getItem('slothops_jwt');
+      try {
+        const res = await fetch('/api/qa-reports', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          const hint = document.getElementById('qa-config-hint');
+          qaFeed.innerHTML = '';
+          if (hint) qaFeed.appendChild(hint);
+          if (data && data.length > 0) {
+            if (emptyState) emptyState.style.display = 'none';
+            data.forEach(report => {
+              const card = createQACard(report);
+              card.classList.remove('slide-in');
+              qaFeed.appendChild(card);
+            });
+          } else if (tabQA && tabQA.classList.contains('bg-indigo-600')) {
+            if (emptyState) {
+              setEmptyState('qa');
+              emptyState.style.display = 'flex';
+            }
+          }
+        }
+      } catch (e) { console.error(e); }
+    }
+
+
+    function decodeJWT(token) {
+      try {
+        const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(decodeURIComponent(atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+      } catch (e) {
+        return {};
+      }
+    }
+
+    async function handleAuth(url, data, errorEl) {
+      try {
+        let encodedData;
+        let headers = {};
+        if (url.includes('login')) {
+          encodedData = new URLSearchParams({ username: data.email, password: data.password });
+          headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        } else {
+          localStorage.setItem('slothops_workspace_name', data.workspace_name || 'My Workspace');
+          encodedData = JSON.stringify(data);
+          headers = { 'Content-Type': 'application/json' };
+        }
+
+        const res = await fetch(url, { method: 'POST', headers, body: encodedData });
+        const json = await res.json();
+        if (res.ok && json.access_token) {
+          localStorage.setItem('slothops_jwt', json.access_token);
+          initDashboard();
+        } else {
+          document.getElementById(errorEl).innerText = json.detail || 'Authentication failed';
+        }
+      } catch (e) {
+        document.getElementById(errorEl).innerText = 'Network error connecting to auth server';
+      }
+    }
+
+    document.getElementById('login-form').onsubmit = (e) => {
+      e.preventDefault();
+      handleAuth('/api/login', {
+        email: document.getElementById('login-email').value,
+        password: document.getElementById('login-pass').value
+      }, 'login-error');
+    };
+
+    document.getElementById('signup-form').onsubmit = (e) => {
+      e.preventDefault();
+      handleAuth('/api/signup', {
+        email: document.getElementById('signup-email').value,
+        password: document.getElementById('signup-pass').value,
+        workspace_name: document.getElementById('signup-workspace').value
+      }, 'signup-error');
+    };
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      return new Date(isoStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function flashLogsBorder() {
+      logsPanel.classList.remove('log-flash');
+      void logsPanel.offsetWidth;
+      logsPanel.classList.add('log-flash');
+    }
+
+    function renderStepper(status) {
+      const activeStep = (STATUS_MAP[status]?.step || 1);
+      return `
+        <div class="pipeline-stepper">
+          ${STEP_LABELS.map((label, index) => {
+        const idx = index + 1;
+        const cls = idx <= activeStep ? 'step-active' : 'step-idle';
+        const ai = label === 'LLM Fixing' ? 'step-ai' : '';
+        const redact = label === 'Redacted' ? 'step-redact' : '';
+        return `<div class="step-node ${cls} ${ai} ${redact}"><span>${label}</span></div>`;
+      }).join('')}
+        </div>
+      `;
+    }
+
+    function appendLogRow(entry) {
+      const row = document.createElement('div');
+      const level = (entry.level || 'INFO').toUpperCase();
+      row.className = `log-row level-${level.toLowerCase()}`;
+      const ts = formatTime(entry.ts || new Date().toISOString());
+      row.innerHTML = `
+        <span class="log-time">${ts}</span>
+        <span class="log-level">${level}</span>
+        <span class="log-source">${entry.logger || 'engine'}</span>
+        <span class="log-message">${entry.message || ''}</span>
+      `;
+      logFeed.prepend(row);
+      flashLogsBorder();
+
+      const maxRows = 250;
+      while (logFeed.children.length > maxRows) {
+        logFeed.removeChild(logFeed.lastChild);
+      }
+    }
+
+    function recommendationHtml(issue) {
+      if (!issue.recommendation) return '';
+      return `<div class="recommendation-box"><h4><i class="fa-solid fa-robot"></i> DevOps AI Hint</h4><p>${issue.recommendation}</p></div>`;
+    }
+
+    function createCard(issue) {
+      const card = document.createElement('div');
+      card.className = 'issue-card slide-in';
+      card.id = `issue-${issue.id}`;
+
+      const config = STATUS_MAP[issue.status] || { label: issue.status || 'Unknown', icon: 'fa-circle', color: 'gray' };
+      const badge = issue.confidence ? `<span class="badge conf-${issue.confidence}">${issue.confidence.toUpperCase()}</span>` : '';
+      const classBadge = issue.classification ? `<span class="badge class-${issue.classification}">${issue.classification}</span>` : '';
+      const prLink = issue.fix_pr_url ? `<a href="${issue.fix_pr_url}" target="_blank" class="pr-link"><i class="fa-brands fa-github"></i> View PR</a>` : '';
+      const occurrences = issue.occurrence_count > 1 ? `<span class="badge occurrence-badge">${issue.occurrence_count}x</span>` : '';
+
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-title">
+            <span class="error-type">${issue.error_type || 'UnknownError'}</span>${occurrences}
+          </div>
+          <div class="card-status status-${config.color}">
+            <i class="fa-solid ${config.icon} ${config.pulse ? 'pulse-icon' : ''}"></i><span>${config.label}</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="error-msg">${issue.error_message || 'No message available'}</p>
+          <p class="location"><i class="fa-regular fa-file-code"></i> ${issue.file_path || '?'} : ${issue.function_name || '?'}()</p>
+          ${renderStepper(issue.status)}
+          ${recommendationHtml(issue)}
+        </div>
+        <div class="card-footer">
+          <div class="badges">${classBadge}${badge}</div>
+          <div class="actions">${prLink}<span class="time">${formatTime(issue.created_at)}</span></div>
+        </div>
+      `;
+
+      if (issue.status === 'fixing') card.classList.add('is-fixing');
+      return card;
+    }
+
+    function updateCard(card, issue) {
+      const config = STATUS_MAP[issue.status] || { label: issue.status || 'Unknown', icon: 'fa-circle', color: 'gray' };
+      const statusContainer = card.querySelector('.card-status');
+      statusContainer.className = `card-status status-${config.color}`;
+      statusContainer.innerHTML = `<i class="fa-solid ${config.icon} ${config.pulse ? 'pulse-icon' : ''}"></i> <span>${config.label}</span>`;
+
+      const stepper = card.querySelector('.pipeline-stepper');
+      if (stepper) {
+        stepper.outerHTML = renderStepper(issue.status);
+      }
+
+      if (issue.classification) {
+        const oldClassBadge = card.querySelector('.badges [class*="class-"]');
+        if (oldClassBadge) oldClassBadge.remove();
+        card.querySelector('.badges').insertAdjacentHTML('afterbegin', `<span class="badge class-${issue.classification}">${issue.classification}</span>`);
+      }
+
+      if (issue.confidence) {
+        const oldConf = card.querySelector('.badges [class*="conf-"]');
+        if (oldConf) oldConf.remove();
+        card.querySelector('.badges').insertAdjacentHTML('beforeend', `<span class="badge conf-${issue.confidence}">${issue.confidence.toUpperCase()}</span>`);
+      }
+
+      if (issue.fix_pr_url && !card.querySelector('.pr-link')) {
+        card.querySelector('.actions').insertAdjacentHTML('afterbegin', `<a href="${issue.fix_pr_url}" target="_blank" class="pr-link"><i class="fa-brands fa-github"></i> View PR</a>`);
+      }
+
+      if (issue.occurrence_count > 1) {
+        const title = card.querySelector('.card-title');
+        const occ = title.querySelector('.occurrence-badge');
+        if (occ) occ.innerText = `${issue.occurrence_count}x`;
+        else title.insertAdjacentHTML('beforeend', `<span class="badge occurrence-badge">${issue.occurrence_count}x</span>`);
+      }
+
+      if (issue.recommendation && !card.querySelector('.recommendation-box')) {
+        card.querySelector('.card-body').insertAdjacentHTML('beforeend', recommendationHtml(issue));
+      }
+
+      card.classList.toggle('is-fixing', issue.status === 'fixing');
+      card.style.animation = 'none';
+      void card.offsetWidth;
+      card.style.animation = 'flash 0.9s';
+    }
+
+    function markGithubLinked(linked) {
+      const text = linked ? 'GitHub: Linked' : 'GitHub: Pending';
+      const klass = linked ? 'success' : 'warning';
+
+      if (githubPill) {
+        githubPill.className = `pill ${klass}`;
+        githubPill.innerHTML = '<i class="fa-brands fa-github"></i> ' + text;
+      }
+
+      if (githubPillMobile) {
+        githubPillMobile.className = `pill ${klass}`;
+        githubPillMobile.innerHTML = '<i class="fa-brands fa-github"></i> ' + text;
+      }
+    }
+
+    async function initDashboard() {
+      const token = localStorage.getItem('slothops_jwt');
+      if (!token) return;
+
+      setEmptyState('issues');
+
+      authView.style.display = 'none';
+      dashboardView.style.display = 'block';
+      userControls.style.display = 'flex';
+      connectivityPills.style.display = 'flex';
+      connectivityPillsMobile.style.display = 'block';
+
+      const decoded = decodeJWT(token);
+      const host = window.location.origin;
+      document.getElementById('workspace-id-display').innerText = decoded.workspace_id;
+      document.getElementById('webhook-url').innerText = `${host}/webhook/sentry/${decoded.workspace_id}`;
+
+      const email = decoded.sub || 'user@example.com';
+      const workspaceName = localStorage.getItem('slothops_workspace_name') || decoded.workspace_name || decoded.workspace_id || 'My Workspace';
+      profileName.innerText = `${email}`;
+      profileWorkspace.innerText = workspaceName;
+
+      // Fetch Developer Config
+      fetch('/api/developer-config', { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(data => {
+          if (data.config) {
+            document.getElementById('dev-config-json').value = JSON.stringify(data.config, null, 2);
+          }
+        }).catch(err => console.error('Failed to load dev config', err));
+
+      document.getElementById('btn-save-dev-config').onclick = async () => {
+        const statusEl = document.getElementById('dev-config-status');
+        const btn = document.getElementById('btn-save-dev-config');
+        try {
+          const val = document.getElementById('dev-config-json').value;
+          const parsed = val ? JSON.parse(val) : null;
+          if (parsed && typeof parsed !== 'object') throw new Error("Must be a JSON object");
+
+          btn.innerText = "Saving...";
+          const res = await fetch('/api/developer-config', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(parsed || {})
+          });
+          if (!res.ok) throw new Error("Save failed");
+          statusEl.innerText = "Saved successfully!";
+          statusEl.style.color = "#22c55e"; // success color
+        } catch (e) {
+          statusEl.innerText = `Error: ${e.message}`;
+          statusEl.style.color = "#ef4444"; // danger color
+        } finally {
+          btn.innerText = "Save Config";
+          setTimeout(() => { statusEl.innerText = ""; }, 3000);
+        }
+      };
+
+      markGithubLinked(localStorage.getItem('slothops_github_linked') === 'true');
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const installationId = urlParams.get('installation_id');
+      if (installationId) {
+        settingsModal.style.display = 'flex';
+        fetch('/api/github/link', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ installation_id: installationId })
+        }).then(res => res.json()).then(data => {
+          if (data.status === 'linked') {
+            document.getElementById('github-success-msg').style.display = 'block';
+            localStorage.setItem('slothops_github_linked', 'true');
+            markGithubLinked(true);
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        });
+      }
+
+      try {
+        const res = await fetch('/api/rollbacks', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            rollbacksFeed.innerHTML = '';
+            data.forEach(rb => {
+              const card = createRollbackCard(rb);
+              card.classList.remove('slide-in');
+              rollbacksFeed.appendChild(card);
+            });
+          }
+        }
+      } catch (e) { console.error(e); }
+
+      try {
+        const res = await fetch('/issues', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.status === 401) {
+          localStorage.removeItem('slothops_jwt');
+          window.location.reload();
+          return;
+        }
+
+        const data = await res.json();
+        if (data && data.length > 0) {
+          emptyState.style.display = 'none';
+          feed.innerHTML = '';
+          data.forEach(issue => {
+            const card = createCard(issue);
+            card.classList.remove('slide-in');
+            feed.appendChild(card);
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      const source = new EventSource(`/stream?token=${token}`);
+
+      const handleIssueEvent = (event) => {
+        const payload = JSON.parse(event.data);
+
+        if (payload.event === 'rollback_event' || event.type === 'rollback_event') {
+          const existing = document.getElementById(`rollback-${payload.id}`);
+          if (existing) {
+            updateRollbackCard(existing, payload);
+            existing.style.animation = 'none';
+            // existing.offsetHeight;
+            existing.style.animation = 'flash 1s';
+          } else {
+            if (rollbacksFeed) rollbacksFeed.prepend(createRollbackCard(payload));
+          }
+          return;
+        }
+
+        if (payload.event === 'resolution_event' || event.type === 'resolution_event') {
+          fetch(`/api/rollbacks/${payload.rollback_id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => res.json())
+            .then(rb => {
+              if (rb.error) return;
+              const existing = document.getElementById(`rollback-${rb.id}`);
+              if (existing) {
+                updateRollbackCard(existing, rb);
+                existing.style.animation = 'none';
+                // existing.offsetHeight;
+                existing.style.animation = 'flash 1s';
+              } else {
+                if (rollbacksFeed) rollbacksFeed.prepend(createRollbackCard(rb));
+              }
+            });
+          return;
+        }
+
+        if (payload.event === 'qa_update' || payload.event === 'qa_report') {
+          if (tabQA && tabQA.classList.contains('bg-indigo-600')) loadQAReports();
+          return;
+        }
+
+        emptyState.style.display = 'none';
+
+        if (payload.id) {
+          const existing = document.getElementById(`issue-${payload.id}`);
+          if (existing) {
+            updateCard(existing, payload);
+            return;
+          }
+        }
+
+        if (payload.id && !document.getElementById(`issue-${payload.id}`)) {
+          fetch(`/issues/${payload.id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(r => r.json())
+            .then(issue => {
+              if (issue.error) return;
+              feed.prepend(createCard(issue));
+            });
+        }
+      };
+
+      source.addEventListener('rollback_event', handleIssueEvent);
+      source.addEventListener('resolution_event', handleIssueEvent);
+
+      if (document.getElementById('close-qa-detail')) {
+        document.getElementById('close-qa-detail').onclick = () => { if (qaDetailModal) qaDetailModal.style.display = 'none'; };
+      }
+      if (qaDetailModal) {
+        qaDetailModal.onclick = (e) => { if (e.target === qaDetailModal) qaDetailModal.style.display = 'none'; };
+      }
+
+      source.onmessage = handleIssueEvent;
+      source.addEventListener('status_update', handleIssueEvent);
+      source.addEventListener('log', (event) => {
+        const payload = JSON.parse(event.data);
+        appendLogRow(payload);
+      });
+
+      source.onerror = () => {
+        appendLogRow({
+          ts: new Date().toISOString(),
+          level: 'WARN',
+          logger: 'slothops.ui',
+          message: 'SSE disconnected. Trying to reconnect...'
+        });
+      };
+    }
+
+    if (localStorage.getItem('slothops_jwt')) {
+      initDashboard();
+    } else {
+      authView.style.display = 'block';
+      dashboardView.style.display = 'none';
+      userControls.style.display = 'none';
+      connectivityPills.style.display = 'none';
+      connectivityPillsMobile.style.display = 'none';
+    }
+  </script>
+</body>
+
+</html>

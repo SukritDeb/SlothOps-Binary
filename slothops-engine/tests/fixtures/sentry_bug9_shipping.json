@@ -1,0 +1,84 @@
+{
+  "action": "created",
+  "data": {
+    "event": {
+      "event_id": "bug9_shipping_crash",
+      "project": 12345,
+      "timestamp": 1700002000.0,
+      "platform": "node",
+      "level": "error",
+      "title": "TypeError: Cannot read properties of undefined (reading 'value')",
+      "type": "error",
+      "message": "",
+      "exception": {
+        "values": [
+          {
+            "type": "TypeError",
+            "value": "Cannot read properties of undefined (reading 'value')",
+            "stacktrace": {
+              "frames": [
+                {
+                  "filename": "node_modules/express/lib/router/route.js",
+                  "abs_path": "/app/node_modules/express/lib/router/route.js",
+                  "function": "Route.dispatch",
+                  "lineno": 114,
+                  "colno": 3,
+                  "in_app": false,
+                  "context_line": "    layer.handle_request(req, res, next);"
+                },
+                {
+                  "filename": "src/services/inventoryService.ts",
+                  "abs_path": "/app/src/services/inventoryService.ts",
+                  "function": "getItemDetails",
+                  "lineno": 15,
+                  "colno": 10,
+                  "in_app": true,
+                  "context_line": "    return mockInventory[itemId] || null;"
+                },
+                {
+                  "filename": "src/services/pricingService.ts",
+                  "abs_path": "/app/src/services/pricingService.ts",
+                  "function": "calculateTotalWeight",
+                  "lineno": 11,
+                  "colno": 36,
+                  "in_app": true,
+                  "context_line": "      totalWeightInKg += itemDetails.weight!.value;"
+                },
+                {
+                  "filename": "src/services/shippingService.ts",
+                  "abs_path": "/app/src/services/shippingService.ts",
+                  "function": "calculateShippingForCart",
+                  "lineno": 10,
+                  "colno": 23,
+                  "in_app": true,
+                  "context_line": "  const totalWeight = calculateTotalWeight(mockCartItems);"
+                },
+                {
+                  "filename": "src/routes/shipping.ts",
+                  "abs_path": "/app/src/routes/shipping.ts",
+                  "function": "post:/calculate/:cartId",
+                  "lineno": 9,
+                  "colno": 24,
+                  "in_app": true,
+                  "context_line": "    const shippingCost = calculateShippingForCart(cartId);"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "tags": {
+        "environment": "production"
+      },
+      "request": {
+        "url": "https://demo.slothops.dev/shipping/calculate/req-102",
+        "method": "POST"
+      }
+    }
+  },
+  "actor": {
+    "type": "application",
+    "id": "sentry",
+    "name": "Sentry"
+  }
+}

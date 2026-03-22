@@ -1,0 +1,99 @@
+{
+  "action": "created",
+  "data": {
+    "event": {
+      "event_id": "deep_chain_test_001",
+      "project": 12345,
+      "timestamp": 1700001000.0,
+      "platform": "node",
+      "level": "error",
+      "title": "TypeError: Cannot read properties of undefined (reading 'tier')",
+      "type": "error",
+      "message": "",
+      "exception": {
+        "values": [
+          {
+            "type": "TypeError",
+            "value": "Cannot read properties of undefined (reading 'tier')",
+            "stacktrace": {
+              "frames": [
+                {
+                  "filename": "node_modules/express/lib/router/layer.js",
+                  "abs_path": "/app/node_modules/express/lib/router/layer.js",
+                  "function": "Layer.handle",
+                  "lineno": 95,
+                  "colno": 5,
+                  "in_app": false,
+                  "context_line": "    fn(req, res, next);"
+                },
+                {
+                  "filename": "node_modules/express/lib/router/route.js",
+                  "abs_path": "/app/node_modules/express/lib/router/route.js",
+                  "function": "Route.dispatch",
+                  "lineno": 114,
+                  "colno": 3,
+                  "in_app": false,
+                  "context_line": "    layer.handle_request(req, res, next);"
+                },
+                {
+                  "filename": "src/services/userService.ts",
+                  "abs_path": "/app/src/services/userService.ts",
+                  "function": "getUserById",
+                  "lineno": 24,
+                  "colno": 10,
+                  "in_app": true,
+                  "context_line": "    return mockUsers[id] || null;"
+                },
+                {
+                  "filename": "src/services/discountService.ts",
+                  "abs_path": "/app/src/services/discountService.ts",
+                  "function": "getLoyaltyDiscount",
+                  "lineno": 21,
+                  "colno": 35,
+                  "in_app": true,
+                  "context_line": "    const tier = (user as any).loyalty.tier;"
+                },
+                {
+                  "filename": "src/services/orderService.ts",
+                  "abs_path": "/app/src/services/orderService.ts",
+                  "function": "calculateTotal",
+                  "lineno": 63,
+                  "colno": 22,
+                  "in_app": true,
+                  "context_line": "    const discount = getLoyaltyDiscount(order.userId, subtotal);"
+                },
+                {
+                  "filename": "src/routes/orders.ts",
+                  "abs_path": "/app/src/routes/orders.ts",
+                  "function": "generateInvoice",
+                  "lineno": 36,
+                  "colno": 22,
+                  "in_app": true,
+                  "context_line": "    const invoice = calculateTotal(req.params.id);"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "tags": {
+        "environment": "production",
+        "runtime": "node v20.10.0",
+        "url": "/orders/999/invoice"
+      },
+      "contexts": {
+        "os": { "name": "Linux" },
+        "runtime": { "name": "node", "version": "20.10.0" }
+      },
+      "request": {
+        "url": "https://demo.slothops.dev/orders/999/invoice",
+        "method": "GET"
+      }
+    }
+  },
+  "actor": {
+    "type": "application",
+    "id": "sentry",
+    "name": "Sentry"
+  }
+}

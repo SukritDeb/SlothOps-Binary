@@ -1,0 +1,380 @@
+{
+  "info": {
+    "name": "SlothOps Engine API",
+    "description": "Complete API collection for the SlothOps automated QA & bug‑remediation engine.\n\nIncludes auth, webhooks (Sentry + GitHub), issue management, QA pipeline reports & bypass, developer config, and real‑time SSE streaming.\n\n## Quick Start\n1. Run **Signup** → **Login** (the Login test‑script auto‑stores the JWT).\n2. **Link GitHub Installation** to pair your GitHub App.\n3. Open a PR on your demo repo and the QA pipeline triggers automatically.\n4. Use **List QA Reports** / **Get QA Report** to inspect results.\n5. Use **Bypass QA** to force‑approve a failed report.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Register a new account and obtain a JWT bearer token.\n\n**Flow:** Signup → Login (auto‑stores `jwt_token` variable).",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dev@example.com\",\n  \"password\": \"supersecret\",\n  \"workspace_name\": \"My Workspace\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "signup"]
+            },
+            "description": "Creates a new user account and workspace. Returns a JWT bearer token.\n\n**No auth required.**"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set('jwt_token', jsonData.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "dev@example.com" },
+                { "key": "password", "value": "supersecret" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            },
+            "description": "Authenticates with email + password (OAuth2 form). The test‑script automatically saves `jwt_token` for subsequent requests.\n\n**No auth required.**"
+          }
+        }
+      ]
+    },
+    {
+      "name": "GitHub Integration",
+      "description": "Pair a GitHub App installation with your workspace and simulate webhook events.",
+      "item": [
+        {
+          "name": "Link GitHub Installation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"installation_id\": \"123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/github/link",
+              "host": ["{{base_url}}"],
+              "path": ["api", "github", "link"]
+            },
+            "description": "Pairs a GitHub App `installation_id` (from the App's setup redirect URL) with the authenticated workspace.\n\n**Requires:** Bearer token (auto‑inherited)."
+          }
+        },
+        {
+          "name": "GitHub Webhook — Installation Event",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-github-event", "value": "installation" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"created\",\n  \"installation\": {\n    \"id\": 123456789\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/github",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "github"]
+            },
+            "description": "Simulates a GitHub App **installation created** event.\n\nThe engine auto‑links the installation to the first unlinked workspace.\n\n**No auth required** (webhook endpoint)."
+          }
+        },
+        {
+          "name": "GitHub Webhook — PR Opened Event",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-github-event", "value": "pull_request" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"opened\",\n  \"installation\": {\n    \"id\": 123456789\n  },\n  \"pull_request\": {\n    \"number\": 1,\n    \"title\": \"feat: add settings route\",\n    \"html_url\": \"https://github.com/Itz-snj/slothops-demo-app/pull/1\",\n    \"head\": {\n      \"sha\": \"abc123def456\",\n      \"ref\": \"feature/settings\"\n    },\n    \"base\": {\n      \"ref\": \"main\"\n    },\n    \"user\": {\n      \"login\": \"dev-user\"\n    },\n    \"diff_url\": \"https://github.com/Itz-snj/slothops-demo-app/pull/1.diff\"\n  },\n  \"repository\": {\n    \"full_name\": \"Itz-snj/slothops-demo-app\",\n    \"clone_url\": \"https://github.com/Itz-snj/slothops-demo-app.git\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/github",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "github"]
+            },
+            "description": "Simulates a GitHub **pull_request opened** event.\n\nThis triggers:\n1. **Style + Architecture review** — AI comments are posted on the PR.\n2. **QA Pipeline** — Static analysis, functionality tests, VAPT, stress test, regression, and performance checks run automatically. A commit status (`pending` → `success`/`failure`) is set on the PR head SHA.\n\n**No auth required** (webhook endpoint)."
+          }
+        },
+        {
+          "name": "GitHub Webhook — PR Synchronize Event",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-github-event", "value": "pull_request" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"synchronize\",\n  \"installation\": {\n    \"id\": 123456789\n  },\n  \"pull_request\": {\n    \"number\": 1,\n    \"title\": \"feat: add settings route\",\n    \"html_url\": \"https://github.com/Itz-snj/slothops-demo-app/pull/1\",\n    \"head\": {\n      \"sha\": \"new789commit\",\n      \"ref\": \"feature/settings\"\n    },\n    \"base\": {\n      \"ref\": \"main\"\n    },\n    \"user\": {\n      \"login\": \"dev-user\"\n    },\n    \"diff_url\": \"https://github.com/Itz-snj/slothops-demo-app/pull/1.diff\"\n  },\n  \"repository\": {\n    \"full_name\": \"Itz-snj/slothops-demo-app\",\n    \"clone_url\": \"https://github.com/Itz-snj/slothops-demo-app.git\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/github",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "github"]
+            },
+            "description": "Simulates a GitHub **pull_request synchronize** event (new commits pushed to an existing PR).\n\nRe‑triggers the full QA pipeline and code review with the updated HEAD SHA.\n\n**No auth required** (webhook endpoint)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Developer Config",
+      "description": "Upload or retrieve `developer.json` style/coding preferences. These rules are used by the AI style reviewer when commenting on PRs.",
+      "item": [
+        {
+          "name": "Upload developer.json",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"frontend\": {\n    \"framework\": \"React\",\n    \"styling\": \"Tailwind CSS only, no inline styles\",\n    \"naming\": \"camelCase for variables, PascalCase for components\"\n  },\n  \"backend\": {\n    \"error_handling\": \"Always use custom AppError class\",\n    \"logging\": \"Use winston logger, never console.log\",\n    \"validation\": \"Use zod schemas for all inputs\"\n  },\n  \"general\": {\n    \"max_function_lines\": 30,\n    \"prefer_const\": true,\n    \"no_any_type\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/developer-config",
+              "host": ["{{base_url}}"],
+              "path": ["api", "developer-config"]
+            },
+            "description": "Upload or overwrite the `developer.json` coding preferences for the authenticated workspace.\n\nThese rules are referenced by the AI style reviewer when leaving PR comments.\n\n**Requires:** Bearer token."
+          }
+        },
+        {
+          "name": "Get developer.json",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/developer-config",
+              "host": ["{{base_url}}"],
+              "path": ["api", "developer-config"]
+            },
+            "description": "Retrieve the current `developer.json` preferences for the workspace.\n\nReturns `{\"config\": null}` if none is set.\n\n**Requires:** Bearer token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "QA Reports",
+      "description": "View and manage the QA pipeline results generated for each pull request.\n\nReports include per‑agent results for: Static analysis, functionality testing, VAPT scan, stress test, regression testing, and performance baseline.",
+      "item": [
+        {
+          "name": "List QA Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/qa-reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "qa-reports"]
+            },
+            "description": "Returns all QA reports for the authenticated workspace, ordered by most recent.\n\nEach report includes: `id`, `pr_number`, `repo_name`, `overall_status`, `summary`, `commit_sha`, and per‑agent breakdowns.\n\n**Requires:** Bearer token."
+          }
+        },
+        {
+          "name": "Get QA Report by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/qa-reports/{{report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "qa-reports", "{{report_id}}"]
+            },
+            "description": "Returns the full detail of a single QA report, including:\n- `static_analysis` — type‑checker + linter results with raw logs\n- `functionality` — LLM‑generated test results\n- `vapt` — npm audit / pip‑audit output\n- `stress_test` — autocannon throughput metrics\n- `regression` — existing test suite pass/fail\n- `performance` — root endpoint latency baseline\n\n**Requires:** Bearer token."
+          }
+        },
+        {
+          "name": "Bypass QA Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"False positive — performance flake on cold start, verified manually.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/qa-bypass/{{report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "qa-bypass", "{{report_id}}"]
+            },
+            "description": "Force‑approves a failed QA report and sets the GitHub commit status to `success` so the PR can be merged.\n\n**Body:**\n- `reason` (string, required) — explanation for bypassing the QA gate.\n\nThe reason is logged and stored in the report summary.\n\n**Requires:** Bearer token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Issues (Sentry Pipeline)",
+      "description": "View issues generated by the Sentry → auto‑fix pipeline.\n\nEach issue tracks: error type, file path, patch status, and the generated PR link.",
+      "item": [
+        {
+          "name": "List Issues",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/issues",
+              "host": ["{{base_url}}"],
+              "path": ["issues"]
+            },
+            "description": "Returns all issues for the authenticated workspace.\n\n**Requires:** Bearer token."
+          }
+        },
+        {
+          "name": "Get Specific Issue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/issues/{{issue_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["issues", "{{issue_id}}"]
+            },
+            "description": "Returns full detail of a single issue including the raw Sentry payload, generated patch, and PR URL.\n\n**Requires:** Bearer token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks & Streaming",
+      "description": "Inbound webhooks and real‑time dashboard streaming.",
+      "item": [
+        {
+          "name": "Sentry Webhook (Simulation Payload)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"event\": {\n      \"exception\": {\n        \"values\": [\n          {\n            \"type\": \"TypeError\",\n            \"value\": \"Simulated Postman Crash\",\n            \"stacktrace\": {\n              \"frames\": [\n                {\n                  \"filename\": \"src/routes/config.ts\",\n                  \"lineno\": 42,\n                  \"function\": \"manualTrigger\"\n                }\n              ]\n            }\n          }\n        ]\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/sentry/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["webhook", "sentry", "{{workspace_id}}"]
+            },
+            "description": "Simulates a Sentry webhook to trigger the auto‑fix pipeline.\n\nThe engine parses the error, clones the repo, generates a patch via Gemini, and opens a fix PR.\n\n**No auth required** (webhook endpoint)."
+          }
+        },
+        {
+          "name": "SSE Stream (Real‑time Dashboard)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "text/event-stream" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/stream?token={{jwt_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["stream"],
+              "query": [
+                { "key": "token", "value": "{{jwt_token}}" }
+              ]
+            },
+            "description": "Server‑Sent Events endpoint for real‑time dashboard updates.\n\nStreams: `log` events (pipeline progress), `qa_update` events (QA status changes), and `issue_update` events.\n\nUses `?token=` query param because the browser `EventSource` API does not support custom headers.\n\n**Auth via query param** (JWT)."
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Simple liveness check. Returns `{\"status\": \"ok\", \"service\": \"slothops-engine\"}`.\n\n**No auth required.**"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "Base URL of the SlothOps engine. Change to your ngrok URL for remote testing."
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string",
+      "description": "Auto‑populated by the Login request test script."
+    },
+    {
+      "key": "issue_id",
+      "value": "sample-uuid-here",
+      "type": "string",
+      "description": "UUID of a Sentry issue. Get one from GET /issues."
+    },
+    {
+      "key": "workspace_id",
+      "value": "default_workspace",
+      "type": "string",
+      "description": "Workspace UUID for Sentry webhook path. Get from Signup response."
+    },
+    {
+      "key": "report_id",
+      "value": "sample-report-uuid",
+      "type": "string",
+      "description": "QA report UUID. Get one from GET /api/qa-reports."
+    }
+  ]
+}
