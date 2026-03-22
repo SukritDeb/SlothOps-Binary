@@ -1,62 +1,188 @@
-# SlothOps 🦥
+<p align="center">
+  <h1 align="center">SlothOps</h1>
+  <p align="center"><strong>Autonomous Bug Remediation & Production Self-Healing for GitHub</strong></p>
+  <p align="center">
+    <em>From crash to fix — zero human intervention.</em>
+  </p>
+</p>
 
-> **Production-aware automated bug remediation.** 
-> SlothOps watches your applications for crashes via Sentry, intelligently fetces the relevant source code from GitHub, asks GPT-4o to engineer a fix, and opens a Draft Pull Request — all before a developer even wakes up.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Gemini_2.5_Pro-4285F4?logo=google&logoColor=white" alt="Gemini">
+  <img src="https://img.shields.io/badge/GitHub_App-181717?logo=github&logoColor=white" alt="GitHub">
+  <img src="https://img.shields.io/badge/Sentry-362D59?logo=sentry&logoColor=white" alt="Sentry">
+</p>
 
-```text
-Sentry error alert → AI analyzes root cause → Draft PR waiting for your review
+---
+
+## What is SlothOps?
+
+SlothOps is a **closed-loop, production-aware** pipeline that converts live application crashes into reviewed code fixes — automatically. It listens for real-time error events via Sentry, fetches the relevant source from GitHub, generates validated fixes using an LLM, runs a full QA suite, and opens a governed Pull Request — all before a developer even looks at the alert.
+
+If a broken commit makes it to production and breaks the deployment, SlothOps catches the failure, **automatically rolls back `main`**, and immediately attempts to self-heal the broken code on a side branch.
+
+---
+
+## How SlothOps Works
+
+SlothOps operates through three interconnected pipelines that cover the full lifecycle of a production bug.
+
+### Pipeline 1 — Error Remediation
+
+Triggered when a **Sentry webhook** fires on a new or recurring production exception.
+
+```
+Sentry Alert
+  │
+  ▼
+┌─────────────────────────────────────┐
+│  1. INGEST & REDACT                 │
+│     Parse payload, strip all PII,   │
+│     tokens, secrets, emails, IPs    │
+│     before anything reaches the LLM │
+├─────────────────────────────────────┤
+│  2. FINGERPRINT & DEDUPLICATE       │
+│     SHA-256 hash of error signature │
+│     Skip if fix is already pending  │
+│     Re-trigger if prior fix failed  │
+├─────────────────────────────────────┤
+│  3. CLASSIFY                        │
+│     code │ infra │ dependency        │
+│     Only "code" bugs proceed        │
+├─────────────────────────────────────┤
+│  4. FETCH CONTEXT                   │
+│     Source file + test file + local  │
+│     imports from GitHub via API     │
+├─────────────────────────────────────┤
+│  5. GENERATE FIX (LLM)             │
+│     Root-cause analysis + code diff │
+│     via Gemini 2.5 Pro              │
+├─────────────────────────────────────┤
+│  6. OPEN DRAFT PR                   │
+│     Branch from main, commit fix,   │
+│     open PR with confidence rating  │
+└─────────────────────────────────────┘
+  │
+  ▼
+Developer reviews & merges
+```
+
+### Pipeline 2 — Pre-Merge QA Gate
+
+Triggered on every **Pull Request** (opened / synchronized) via GitHub webhook.
+
+```
+PR Opened / Updated
+  │
+  ▼
+┌─────────────────────────────────────┐
+│  1. STYLE REVIEW                    │
+│     AI reviews code against team's  │
+│     developer.json preferences      │
+├─────────────────────────────────────┤
+│  2. ARCHITECTURE REVIEW             │
+│     LLM evaluates design patterns,  │
+│     logic, and potential regressions │
+├─────────────────────────────────────┤
+│  3. QA SANDBOX                      │
+│     Clone repo → detect stack →     │
+│     install deps → run agents:      │
+│                                     │
+│     ┌───────────────────────────┐   │
+│     │ • Static Analysis (lint)  │   │
+│     │ • Functionality Tests     │   │
+│     │ • VAPT Security Scan     │   │
+│     │ • Regression Tests       │   │
+│     │ • Performance Baseline   │   │
+│     │ • Stress Testing         │   │
+│     └───────────────────────────┘   │
+├─────────────────────────────────────┤
+│  4. COMMIT STATUS                   │
+│     Sets GitHub Commit Status:      │
+│     ✅ success  or  ❌ failure       │
+│     Blocks merge if QA fails        │
+└─────────────────────────────────────┘
+  │
+  ▼
+QA Report posted as PR comment
+```
+
+### Pipeline 3 — Production Auto-Rollback & Self-Healing
+
+Triggered when a **`deployment_status: failure`** webhook fires on `main` (e.g. from Vercel).
+
+```
+Vercel Build Fails on main
+  │
+  ▼
+┌─────────────────────────────────────┐
+│  1. DETECT                          │
+│     deployment_status webhook       │
+│     with state = "failure"          │
+├─────────────────────────────────────┤
+│  2. ROLLBACK                        │
+│     Clone repo in sandbox           │
+│     Create backup branch            │
+│     git revert bad commit on main   │
+│     Push → production restored ✅   │
+│                                     │
+│  ⛔ Loop Prevention:                │
+│  Aborts if commit message starts    │
+│  with "Revert" (prevents infinite   │
+│  revert chains)                     │
+├─────────────────────────────────────┤
+│  3. AUTO-RESOLVE                    │
+│     Fetch build logs + broken code  │
+│     LLM generates fix               │
+│     Commit fix to backup branch     │
+│     Open Auto-Fix PR → main         │
+├─────────────────────────────────────┤
+│  4. RE-CYCLE (up to 3×)            │
+│     If the Auto-Fix PR also fails   │
+│     deployment, SlothOps re-enters  │
+│     step 3 with updated build logs  │
+│     Max 3 attempts before abandon   │
+└─────────────────────────────────────┘
+  │
+  ▼
+Auto-Fix PR ready for review
 ```
 
 ---
 
-## 🌟 Key Features
+## Tech Stack
 
-*   **Zero-Touch Triaging:** Instantly categorises errors into `code`, `infrastructure`, or `dependency` issues, ignoring alerts that code changes cannot fix.
-*   **Privacy First Data Handling:** Automatically redacts PII and secrets (Emails, API Keys, Tokens, JWTs, IPs, etc.) from the stack trace *before* the data ever reaches an LLM.
-*   **Intelligent Context Gathering:** Scans the failing file and automatically fetches associated test files and local imports from GitHub to provide the LLM with full context.
-*   **Smart Deduplication:** Calculates a SHA-256 fingerprint for every trace. Duplicates are skipped if a fix is already pending, or re-triggered if a previous fix failed in production.
-*   **Automated PR Creation:** Automatically branches from `main`, stages the fixed code, and opens a Draft Pull Request enriched with a confidence rating and failure metadata.
-*   **Production Auto-Rollbacks & Self-Healing:** Catches `deployment_status` failures, locally reverts the broken commit via sandbox, force-pushes `main` to restore stability, and immediately loops the broken branch back into the LLM for Auto-Resolution.
-
----
-
-## 🏗️ Architecture Stack
-
-| Component | Technology | Purpose |
+| Layer | Technology | Role |
 |---|---|---|
-| **Engine (Bot)** | Python 3.11, FastAPI | Core pipeline orchestrator, webhook receiver, and SSE broadcaster. |
-| **Database** | SQLite, `aiosqlite` | Asynchronous, lightweight persistence layer for tracing issue statuses. |
-| **Logic Layer** | OpenAI (GPT-4o), PyGithub | LLM fix generation and direct AST/repository manipulation. |
-| **Demo App** | Node.js, TypeScript | (Phase 3) A target application with intentional bugs to demonstrate the bot. |
+| **Engine** | Python 3.11 · FastAPI · Uvicorn | Webhook receiver, pipeline orchestrator, SSE broadcaster |
+| **LLM** | Google Gemini 2.5 Pro / Flash | Code fix generation, QA orchestration, style & architecture review |
+| **Database** | SQLite · aiosqlite | Async persistence for issues, QA reports, rollbacks, resolutions |
+| **Source Control** | PyGithub · GitHub App | Repository access, PR creation, commit status checks |
+| **Monitoring** | Sentry SDK | Error detection webhooks for the target application |
+| **Frontend** | Vanilla HTML/CSS/JS · TailwindCSS · SSE | Real-time command center dashboard |
+| **Demo App** | Node.js · TypeScript · Express | Target application with intentional bugs for demonstration |
 
 ---
 
-## 🚀 How It Works (End-to-End)
-
-1. **Detection:** A bug crashes in the target app, causing Sentry to fire a realtime webhook.
-2. **Ingestion & Redaction:** The engine parses the payload, identifies the top application frame, and strips all PII from the stack trace.
-3. **Classification:** The engine decides if this is a `code` bug. Infrastructure blips (like a killed database connection) are ignored.
-4. **Production Rescue (If needed):** If a merge to `main` broke the production deployment (e.g. Vercel), SlothOps catches the webhook, clones the repo, and runs `git revert` to automatically rescue production.
-5. **Context Fetching:** The bot downloads the failing source file, its test file, and relevant local dependencies directly from GitHub.
-6. **Fix Generation:** GPT-4o/Gemini acts as the engineer, providing root-cause analysis and a complete code diff.
-7. **Automation:** A neat, formatted Draft PR is automatically staged and opened on GitHub for human review.
-
----
-
-## 🛠️ Quick Start (Engine)
-
-You can spin up the SlothOps engine locally.
+## Quick Start
 
 ```bash
+# 1. Clone and set up the engine
 cd slothops-engine
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # Fill in your OPENAI_API_KEY and GITHUB_TOKEN
+
+# 2. Configure environment
+cp .env.example .env
+# Fill in: GEMINI_API_KEY, GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, SMTP_*
+
+# 3. Run
 uvicorn main:app --reload --port 8000
 ```
 
-### Try it out manually
-You can trigger the pipeline locally using a provided Sentry fixture payload:
+### Test locally with a Sentry fixture
+
 ```bash
 curl -X POST http://localhost:8000/webhook/sentry \
   -H "Content-Type: application/json" \
@@ -65,25 +191,78 @@ curl -X POST http://localhost:8000/webhook/sentry \
 
 ---
 
-## 🎯 Project Roadmap & Definition of Done
+## Project Structure
 
-Status of the implementation phases (Engine & Demo Application):
+```
+binary/
+├── slothops-engine/           # Core Python engine
+│   ├── main.py                # FastAPI app, webhook handlers, SSE
+│   ├── pipeline.py            # Error remediation orchestrator
+│   ├── rollback.py            # Production rollback logic
+│   ├── resolution.py          # Auto-fix resolution after rollback
+│   ├── qa_pipeline.py         # QA sandbox orchestrator
+│   ├── qa_agents/             # Modular QA agents
+│   │   ├── static_analysis.py
+│   │   ├── functionality.py
+│   │   ├── vapt.py
+│   │   ├── regression.py
+│   │   ├── performance.py
+│   │   └── stress_test.py
+│   ├── llm_fixer.py           # LLM prompt engineering & fix parsing
+│   ├── github_automation.py   # PR creation, commit status, reviews
+│   ├── database.py            # Async SQLite CRUD
+│   ├── models.py              # Pydantic schemas
+│   ├── static/                # Dashboard frontend
+│   │   ├── index.html
+│   │   └── style.css
+│   └── tests/                 # Engine unit tests
+│
+└── slothops-demo-app/         # Demo Express/TS app with seeded bugs
+    ├── src/
+    └── tests/
+```
 
-**Phase 1 & 2: The Core Engine (Completed) ✅**
-- [x] Webhook receiving endpoint (via FastAPI) is functional.
-- [x] Sentry payloads are parsed safely (filtering `node_modules`).
-- [x] Redactor strictly removes all PII/Secrets patterns.
-- [x] Classifier accurately distinguishes code vs. infrastructure errors.
-- [x] Fingerprint deduplication (and 10-minute cooldown logic) functional.
-- [x] Code fetcher retrieves relative files via GitHub API.
-- [x] LLM writes the fix and explains the root cause.
-- [x] GitHub module creates branch, commits, and opens Draft PR safely.
-- [x] 100% test passing locally (64/64 automated tests).
+---
 
-**Phase 3: Demo Application & Dashboard (Upcoming) ⏳**
-- [ ] Build front-end dashboard UI (`static/index.html`) using SSE live statuses.
-- [ ] Develop `slothops-demo-app` (Express/TypeScript) with 3 intentional bugs.
-- [ ] Integrate Sentry SDK into Demo App.
-- [ ] Connect the live Sentry integration to the Engine webhook.
-- [ ] GitHub Actions CI passes on auto-generated PRs.
-- [ ] All 3 demo bugs are perfectly fixed by the auto-generated PRs.
+## Dashboard
+
+The SlothOps Command Center provides a real-time dual-pane view:
+
+- **Issues Panel** — Live-updating cards showing each issue's journey through the remediation pipeline (Ingested → Redacted → Classified → LLM Fixing → PR Created)
+- **Engine Terminal** — Streaming server logs via SSE
+- **QA Pipeline Tab** — Per-PR QA reports with drill-down into each agent's results
+- **Rollback Cards** — Production rollback events with nested auto-resolution attempt history
+
+---
+
+## Key Design Decisions
+
+| Decision | Rationale |
+|---|---|
+| **PII redaction before LLM** | No sensitive data ever leaves the server boundary |
+| **SHA-256 fingerprinting** | Prevents duplicate PRs; re-triggers only on regression |
+| **Git revert (not force-push)** | Clean, auditable rollback history |
+| **Revert-loop prevention** | Aborts rollback if the commit is itself a "Revert" |
+| **Max 3 resolution attempts** | Prevents infinite LLM fix-fail cycles |
+| **aiosqlite with 10s timeout** | Handles concurrent webhook bursts without DB lock crashes |
+| **GitHub App (not PAT)** | Scoped permissions, automatic installation linking |
+
+---
+
+## Environment Variables
+
+| Variable | Purpose |
+|---|---|
+| `GEMINI_API_KEY` | Google Gemini API key for LLM operations |
+| `GITHUB_APP_ID` | GitHub App ID for repository access |
+| `GITHUB_APP_PRIVATE_KEY` | GitHub App private key (PEM format) |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | Email notification delivery |
+| `QA_EMAIL_RECIPIENT` | Recipient for QA and rollback alerts |
+| `JWT_SECRET` | Dashboard authentication signing key |
+| `SENTRY_DSN` | Sentry DSN for the demo application |
+
+---
+
+<p align="center">
+  <sub>Built for the hackathon. Designed to ship.</sub>
+</p>
